@@ -1,0 +1,21 @@
+[package]
+name = "hybrid-compiler-evaluation"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# These dependencies are in the rust kernel project (https://github.com/NiekAukes/rust-kernels);
+# that project should be stored in the same folder as this one.
+nvvm = { path = "../../rust-kernels/nvvm-0.2" }
+nvjitlink = { path = "../../rust-kernels/nvjitlink" }
+cuda = { path = "../../rust-kernels/cuda" }
+
+[target.x86_64-unknown-linux-gnu]
+linker = "/usr/bin/clang"
+rustflags = ["-Clink-arg=-fuse-ld=lld", "-Clink-arg=-Wl,--no-rosegment"]
+
+[profile.release]
+opt-level = 3
+lto = true
