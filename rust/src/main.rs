@@ -184,16 +184,16 @@ pub fn run_bench2() -> Vec<BenchResults> {
 fn main() {
     // Run the benchmarks
     println!("Running benchmarks...");
-    //println!("Running Bench 1...");
-    //let results1 = run_bench1();
+    println!("Running Bench 1...");
+    let results1 = run_bench1();
     println!("Running Bench 2...");
     let results2 = run_bench2();
 
     // Print the results
-    //println!("Bench 1 Results:");
-    // for result in &results1 {
-    //     println!("Test: {} | GPU Time: {:.3} ms", result.test, result.gpu_time);
-    // }
+    println!("Bench 1 Results:");
+    for result in &results1 {
+        println!("Test: {} | GPU Time: {:.3} ms", result.test, result.gpu_time);
+    }
 
     println!("\nBench 2 Results:");
     for result in &results2 {
@@ -205,10 +205,10 @@ fn main() {
     // such as json
     let mut res = "".to_string();
     
-    // for result in &results1 {
-    //     //writeln!(res, "B1|{}|{}", result.test, result.gpu_time).unwrap();
-    //     res.push_str(&format!("B1|{}|{}|{}\n", result.test, result.size, result.gpu_time));
-    // }
+    for result in &results1 {
+        //writeln!(res, "B1|{}|{}", result.test, result.gpu_time).unwrap();
+        res.push_str(&format!("B1|{}|{}|{}\n", result.test, result.size, result.gpu_time));
+    }
     for result in &results2 {
         //writeln!(res, "B2|{}|{}", result.test, result.gpu_time).unwrap();
         res.push_str(&format!("B2|{}|{}|{}\n", result.test, result.size, result.gpu_time));
