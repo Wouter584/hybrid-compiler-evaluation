@@ -15,7 +15,7 @@ def matrix_mul(a, b, c, n):
 
 def bench1():
     # 1 is for precompilation
-    sizes = [1, 16, 64, 256, 512, 1024, 2048, 4096, 8192, 16384]
+    sizes = [1, 16, 64, 256, 512, 1024, 2048, 4096, 8192]
     results = []
 
     for n in sizes:

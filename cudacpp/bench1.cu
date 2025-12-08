@@ -31,7 +31,7 @@ __global__ void matrix_mul(const int* a, const int* b, int* c, int n) {
 
 
 
-const int ns[] = { 16, 64, 256, 512, 1024, 2048, 4096, 8192, 16384 };
+const int ns[] = { 16, 64, 256, 512, 1024, 2048, 4096, 8192 };
 const int ns_count = sizeof(ns) / sizeof(ns[0]);
 
 struct BenchResult {
