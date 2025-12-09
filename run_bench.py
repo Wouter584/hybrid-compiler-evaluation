@@ -18,7 +18,7 @@ def run_rust_benchmarks():
     """
     print("Running Rust benchmarks...")
     os.chdir("rust")
-    subprocess.run(["cargo", "run", "--release"])
+    subprocess.run(["cargo", "run", "--release"], check=True)
     os.chdir("..")
 
 def get_rust_results():
@@ -28,6 +28,7 @@ def get_rust_results():
     rust_results = {
         "B1": [],
         "B2": [],
+        "B3": []
     }
     results = ""
     with open("rust/results/bench_results.txt", "r") as f:
@@ -60,8 +61,10 @@ def run_cuda_benchmarks():
     os.chdir("cudacpp")
     subprocess.run(["nvcc", "-o", "b1", "bench1.cu"], check=True)
     subprocess.run(["./b1"])
-    subprocess.run(["nvcc", "-o", "b2", "bench2.cu"])
+    subprocess.run(["nvcc", "-o", "b2", "bench2.cu"], check=True)
     subprocess.run(["./b2"])
+    subprocess.run(["nvcc", "-o", "b3", "bench3.cu"], check=True)
+    subprocess.run(["./b3"])
     os.chdir("..")
 
 def get_cuda_results():
@@ -70,11 +73,14 @@ def get_cuda_results():
     cuda_results = {
         "B1": [],
         "B2": [],
+        "B3": [],
     }
     results = ""
     with open("cudacpp/results/bench_results1.txt", "r") as f:
         results = f.read()
     with open("cudacpp/results/bench_results2.txt", "r") as f:
+        results += "\n" + f.read()
+    with open("cudacpp/results/bench_results3.txt", "r") as f:
         results += "\n" + f.read()
     results = results.split("\n")
     for line in results:
@@ -116,6 +122,7 @@ def get_numba_results():
     cuda_results = {
         "B1": [],
         "B2": [],
+        "B3": [],
     }
     results = ""
     with open("numba/results/bench_results.txt", "r") as f:
@@ -140,40 +147,8 @@ def get_numba_results():
     return cuda_results
 
 
-
-def plot_benchmark(benchmark_dict, title="Benchmark Results", label="Benchmark"):
-    sizes = []
-    times = []
-
-    for benchmark in benchmark_dict:
-        # benchmark is a tuple of (size, time)
-        size, time = benchmark
-        sizes.append(size)
-        times.append(time)
-
-
-    plt.figure(figsize=(10, 6))
-    plt.plot(sizes, times, marker='o', label=label)
-
-    ax=plt.gca()
-    ax.set_yscale("log")
-
-    ax.yaxis.set_major_formatter(StrMethodFormatter('{x:.0f}'))
-    ax.yaxis.set_minor_formatter(NullFormatter())
-
-    plt.xlabel("Matrix Size (N for NxN)")
-    plt.ylabel("Time (ms)")
-    plt.title(title)
-    plt.xticks(sizes)
-    plt.grid(True)
-    plt.legend()
-    plt.tight_layout()
-    plt.savefig("rust_benchmarks_linear.png")
-    print("Close the plot to continue...")
-    plt.show()
-
-
-def plot_benchmarks(all_benchmarks, title="Benchmark Results (Log Y)"):
+def plot_benchmarks(all_benchmarks, file_name="combined_benchmarks.png", title="Benchmark Results",
+                    xlabel="Size", ylabel="Time (ms)"):
     plt.figure(figsize=(10, 6))
 
     for lang, benchmark_dict in all_benchmarks.items():
@@ -192,19 +167,20 @@ def plot_benchmarks(all_benchmarks, title="Benchmark Results (Log Y)"):
     # ax.yaxis.set_major_formatter(StrMethodFormatter('{x:.0f}'))
     # ax.yaxis.set_minor_formatter(NullFormatter())
 
-    plt.xlabel("Matrix Size (N for NxN)")
-    plt.ylabel("Time (ms)")
     plt.title(title)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
     plt.xticks(sizes)
     plt.grid(True, which='both', linestyle='--', linewidth=0.5)
     plt.legend()
     plt.tight_layout()
-    plt.savefig("combined_benchmarks_log.png")
+    plt.savefig(file_name)
     print("Close the plot to continue...")
     plt.show()
 
 
-def plot_benchmarks_baseline(baseline, all_benchmarks, title="Benchmark Results (Log Y)"):
+def plot_benchmarks_baseline(baseline, all_benchmarks, file_name="combined_benchmarks.png", title="Benchmark Results",
+                             xlabel="Size", ylabel="Relative time (lower is better)"):
     plt.figure(figsize=(10, 6))
 
     baseline_times = {}
@@ -229,14 +205,14 @@ def plot_benchmarks_baseline(baseline, all_benchmarks, title="Benchmark Results 
     # ax.yaxis.set_major_formatter(StrMethodFormatter('{x:.0f}'))
     # ax.yaxis.set_minor_formatter(NullFormatter())
 
-    plt.xlabel("Matrix Size (N for NxN)")
-    plt.ylabel("Time (ms)")
     plt.title(title)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
     plt.xticks(sizes)
     plt.grid(True, which='both', linestyle='--', linewidth=0.5)
     plt.legend()
     plt.tight_layout()
-    plt.savefig("combined_benchmarks_log.png")
+    plt.savefig(file_name)
     print("Close the plot to continue...")
     plt.show()
 
@@ -251,15 +227,19 @@ if __name__ == "__main__":
     #     "Rust": results_rust["B1"],
     #     "CUDA": results_cuda["B1"],
     #     "Numba": results_numba["B1"],
-    # }, title="Benchmark Results (Log Y)")
+    # })
     plot_benchmarks_baseline(results_cuda["B1"], {
         "Rust": results_rust["B1"],
         "CUDA": results_cuda["B1"],
         "Numba": results_numba["B1"],
-    }, title="Benchmark Results (Log Y)")
+    }, title="Matrix multiplication", xlabel="Matrix size")
     plot_benchmarks_baseline(results_cuda["B2"], {
         "Rust": results_rust["B2"],
         "CUDA": results_cuda["B2"],
         "Numba": results_numba["B2"],
-    }, title="Benchmark Results (Log Y)")
-    #os.chdir("..")
+    }, title="Matrix multiplication", xlabel="Number of iterations")
+    plot_benchmarks_baseline(results_cuda["B3"], {
+        "Rust": results_rust["B3"],
+        "CUDA": results_cuda["B3"],
+        "Numba": results_numba["B3"],
+    }, title="Mandelbrot set generation", xlabel="Maximum number of iterations")

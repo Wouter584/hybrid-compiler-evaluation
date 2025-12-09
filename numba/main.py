@@ -1,6 +1,7 @@
 import numpy as np
 from numba import cuda
 import time
+import mandelbrot
 
 @cuda.jit
 def matrix_mul(a, b, c, n):
@@ -83,6 +84,7 @@ def bench2():
 if __name__ == "__main__":
     res1 = bench1()
     res2 = bench2()
+    res3 = mandelbrot.bench3()
 
     # Save results to a file
     with open("results/bench_results.txt", "w") as f:
@@ -90,3 +92,5 @@ if __name__ == "__main__":
             f.write(f"B1|{res['test']}|{res['size']}|{res['gpu_time_ms']}\n")
         for res in res2:
             f.write(f"B2|{res['test']}|{res['size']}|{res['gpu_time_ms']}\n")
+        for res in res3:
+            f.write(f"B3|{res['test']}|{res['max_iterations']}|{res['gpu_time_ms']}\n")

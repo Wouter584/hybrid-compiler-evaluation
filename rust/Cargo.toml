@@ -12,6 +12,10 @@ nvvm = { path = "../../rust-kernels/nvvm-0.2" }
 nvjitlink = { path = "../../rust-kernels/nvjitlink" }
 cuda = { path = "../../rust-kernels/cuda" }
 
+dunce = "1.0.5"
+image = "=0.25.2"
+
+
 [target.x86_64-unknown-linux-gnu]
 linker = "/usr/bin/clang"
 rustflags = ["-Clink-arg=-fuse-ld=lld", "-Clink-arg=-Wl,--no-rosegment"]

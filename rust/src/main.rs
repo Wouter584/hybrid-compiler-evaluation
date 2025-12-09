@@ -1,5 +1,7 @@
 #![engine(cuda::engine)]
 
+mod mandelbrot;
+
 use cuda::dmem::{Buffer, DSend};
 use cuda::gpu;
 
@@ -57,7 +59,7 @@ unsafe fn matrix_mul(a: &[i32], b: &[i32], mut c: Buffer<i32>, n: i32) {
     
 }
 
-pub fn run_bench1() -> Vec<BenchResults> {
+pub fn bench1() -> Vec<BenchResults> {
     match matrix_mul.pre_compile() {
         Ok(_) => {},
         Err(e) => {
@@ -98,7 +100,6 @@ pub fn run_bench1() -> Vec<BenchResults> {
             .launch_with_dptr(threads_per_block, blocks, &mut d_a, &mut d_b, &mut d_buf_c, &mut d_n)
             .unwrap();
 
-
         let x = buf_c.retrieve().unwrap();
         let elapsed_gpu_ms = start.elapsed().as_secs_f64() * 1000.0;
 
@@ -119,7 +120,7 @@ pub fn run_bench1() -> Vec<BenchResults> {
     results
 }
 
-pub fn run_bench2() -> Vec<BenchResults> {
+pub fn bench2() -> Vec<BenchResults> {
     match matrix_mul.pre_compile() {
         Ok(_) => {},
         Err(e) => {
@@ -170,7 +171,7 @@ pub fn run_bench2() -> Vec<BenchResults> {
 
         results.push(BenchResults {
             gpu_time: elapsed_gpu_ms,
-            test: format!("{}x{} - {} iters", n, n, iter),
+            test: format!("{}x{}", n, n),
             size: iter,
         });
     }
@@ -185,9 +186,11 @@ fn main() {
     // Run the benchmarks
     println!("Running benchmarks...");
     println!("Running Bench 1...");
-    let results1 = run_bench1();
+    let results1 = bench1();
     println!("Running Bench 2...");
-    let results2 = run_bench2();
+    let results2 = bench2();
+    println!("Running Bench 3...");
+    let results3 = mandelbrot::bench3();
 
     // Print the results
     println!("Bench 1 Results:");
@@ -197,14 +200,19 @@ fn main() {
 
     println!("\nBench 2 Results:");
     for result in &results2 {
-        println!("Test: {} | GPU Time: {:.3} ms", result.test, result.gpu_time);
+        println!("Test: {} - {} iters | GPU Time: {:.3} ms", result.test, result.size, result.gpu_time);
+    }
+
+    println!("\nBench 3 Results:");
+    for result in &results3 {
+        println!("Test: {} - {} max_iters | GPU Time: {:.3} ms", result.test, result.size, result.gpu_time);
     }
 
     // write the results to a file
     // in a format that can be read by python
     // such as json
     let mut res = "".to_string();
-    
+
     for result in &results1 {
         //writeln!(res, "B1|{}|{}", result.test, result.gpu_time).unwrap();
         res.push_str(&format!("B1|{}|{}|{}\n", result.test, result.size, result.gpu_time));
@@ -212,6 +220,10 @@ fn main() {
     for result in &results2 {
         //writeln!(res, "B2|{}|{}", result.test, result.gpu_time).unwrap();
         res.push_str(&format!("B2|{}|{}|{}\n", result.test, result.size, result.gpu_time));
+    }
+    for result in &results3 {
+        //writeln!(res, "B3|{}|{}", result.test, result.gpu_time).unwrap();
+        res.push_str(&format!("B3|{}|{}|{}\n", result.test, result.size, result.gpu_time));
     }
     let mut file = File::create("results/bench_results.txt").unwrap();
     file.write_all(res.as_bytes()).unwrap();
