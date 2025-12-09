@@ -1,0 +1,9 @@
+/rust/target
+/cudacpp/b1
+/cudacpp/b2
+/cudacpp/b3
+/numba/results
+/rust/results
+/cudacpp/results
+/combined_benchmarks.png
+
