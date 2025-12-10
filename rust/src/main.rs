@@ -21,43 +21,42 @@ use std::time::Instant;
 #[kernel]
 unsafe fn matrix_mul(a: &[i32], b: &[i32], mut c: Buffer<i32>, n: i32) {
     let tid = gpu::global_tid_x();
-    let i = tid / n;
-    let j = tid % n;
-    if !(i < n && j < n) {
-        return;
+    let i = (tid / n) as usize;
+    let j = (tid % n) as usize;
+    let n_usize = n as usize;
+    if i < n_usize && j < n_usize {
+        let mut sum = 0;
+        for k in 0..n_usize {
+            sum += a[i * n_usize + k] * b[k * n_usize + j];
+        }
+        c.set(i * n_usize + j, sum);
     }
-    let mut sum = 0;
-    let mut a_index = (i * n) as usize;
-    let mut b_index = j as usize;
-    let c_index = a_index + b_index;
-    let mut k = 0;
-    let n = n as usize;
-    let end_n = n / 4;
-    while k < end_n {
-        //sum = a[a_index as usize] * b[b_index as usize] + sum;
-        sum = a.get_unchecked(a_index) * b.get_unchecked(b_index) + sum;
-        a_index += 1;
-        b_index += n;
-        sum = a.get_unchecked(a_index) * b.get_unchecked(b_index) + sum;
-        a_index += 1;
-        b_index += n;
-        sum = a.get_unchecked(a_index) * b.get_unchecked(b_index) + sum;
-        a_index += 1;
-        b_index += n;
-        sum = a.get_unchecked(a_index) * b.get_unchecked(b_index) + sum;
-        a_index += 1;
-        b_index += n;
-        k += 1;
-    }
-    for _ in end_n*4..n {
-        sum += a.get_unchecked(a_index) * b.get_unchecked(b_index);
-        a_index += 1;
-        b_index += n;
-    }
-
-    c.set(c_index, sum);
-    
 }
+
+// #[kernel]
+// unsafe fn old_matrix_mul(a: &[i32], b: &[i32], mut c: Buffer<i32>, n: i32) {
+//     let t = gpu::global_tid_x();
+//     let i = t / n;
+//     let j = t % n;
+//
+//     let raw_a = a.as_ptr();
+//     let raw_b = b.as_ptr();
+//     if i < n {
+//         let mut sum = 0;
+//         let mut k = 0;
+//         let itn = i * n;
+//         while k < n {
+//             let a_index = itn + k;
+//             let b_index = k * n + j;
+//             let ai = *raw_a.offset(a_index as isize);
+//             let bi = *raw_b.offset(b_index as isize);
+//             sum += ai * bi;
+//             k += 1;
+//         }
+//         let c_index = i * n + j;
+//         c.set(c_index as usize, sum);
+//     }
+// }
 
 pub fn bench1() -> Vec<BenchResults> {
     match matrix_mul.pre_compile() {
@@ -177,7 +176,6 @@ pub fn bench2() -> Vec<BenchResults> {
     }
 
     results
-    
 }
 
 
