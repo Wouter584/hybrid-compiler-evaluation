@@ -53,8 +53,9 @@ def bench1():
 def bench2():
     n = 1024
     total = n * n
-    iters = [1, 10, 20, 50, 100, 200, 500]
+    iters = [1, 1, 10, 20, 50, 100, 200, 500]
     results = []
+    first = True
     for iter in iters:
         a = np.arange(total, dtype=np.int32)
         b = np.arange(total, dtype=np.int32)
@@ -73,12 +74,13 @@ def bench2():
         cuda.synchronize()
         d_c.copy_to_host(c)
         elapsed = (time.perf_counter() - start) * 1000
-
-        results.append({
-            'test': f'bench2_{n}x{n}_{iter}',
-            'size': iter,
-            'gpu_time_ms': elapsed
-        })
+        if not first:
+            results.append({
+                'test': f'bench2_{n}x{n}_{iter}',
+                'size': iter,
+                'gpu_time_ms': elapsed
+            })
+        first = False
     return results
 
 if __name__ == "__main__":
