@@ -11,18 +11,17 @@ from numba import cuda
 
 
 @cuda.jit
-def mandel(c: complex, max_iters):
+def mandel(c_real, c_imaginary, max_iters):
     """
     Given a complex number,
     determine if it is a candidate for membership in the Mandelbrot
     set given a fixed number of iterations.
     """
-    z = c
+    z_real, z_imaginary = c_real, c_imaginary
     for i in range(max_iters):
-        if z.real * z.real + z.imag * z.imag >= 4:
+        if z_real * z_real + z_imaginary * z_imaginary >= 4:
             return (255 * i) // max_iters
-        z = z*z + c
-
+        z_real, z_imaginary = (z_real * z_real) - (z_imaginary * z_imaginary) + c_real, (z_real + z_real) * z_imaginary + c_imaginary
     return 255
 
 @cuda.jit
@@ -35,7 +34,7 @@ def create_mandelbrot_fractal(image, pixel_span, coordinate_span, real_start, i_
     if x_pixel < pixel_span and y_pixel < pixel_span:
         x = real_start + x_pixel*step
         y = i_start + y_pixel * step
-        image[y_pixel, x_pixel] = mandel(complex(x, y), max_iterations)
+        image[y_pixel, x_pixel] = mandel(x, y, max_iterations)
 
 def bench3():
     # 1 is for precompilation
