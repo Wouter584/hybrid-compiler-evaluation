@@ -83,7 +83,6 @@ fn create_mandelbrot_fractal(
 pub fn bench3() -> Vec<BenchResults> {
     // 1 is for precompilation
     let max_iterations_list = [1, 8, 16, 32, 64, 128, 256, 512, 1024, 2048];
-    let mut image_result = Vec::new();
     let mut results = Vec::new();
 
     let pixel_span: usize = 8192;
@@ -109,16 +108,66 @@ pub fn bench3() -> Vec<BenchResults> {
                 eprintln!("Error launching kernel: {:?}", e);
             }
         }
-
-        image_result = image_buffer.retrieve().unwrap();
+        image_buffer.retrieve().unwrap();
         let elapsed_gpu_ms = start.elapsed().as_secs_f64() * 1000.0;
 
         if max_iterations != 1 {
-            results.push(BenchResults {
+            let bench_results = BenchResults {
                 gpu_time: elapsed_gpu_ms,
                 test: format!("{}x{}", pixel_span, pixel_span),
                 size: max_iterations as usize,
-            });
+            };
+            results.push(bench_results.clone());
+            println!("Test: {} | {} max_iters | GPU Time: {:.3} ms", bench_results.test, bench_results.size, bench_results.gpu_time);
+        }
+    }
+    return results;
+}
+
+pub fn bench4() -> Vec<BenchResults> {
+    // 1 is for precompilation
+    let iterations_list = [1, 10, 20, 50, 100];
+    let max_iterations = 64;
+    let mut image_result = Vec::new();
+    let mut results = Vec::new();
+
+    let pixel_span: usize = 8192;
+    let image_buffer: Buffer<u8> = Buffer::alloc(pixel_span*pixel_span).unwrap();
+
+    let threads_per_block = 256;
+    let blocks = (pixel_span*pixel_span + threads_per_block - 1) / threads_per_block;
+
+    for iterations in iterations_list {
+        let start = Instant::now();
+        for _ in 0..iterations {
+            match create_mandelbrot_fractal.launch(
+                threads_per_block as usize,
+                blocks as usize,
+                image_buffer,
+                pixel_span,
+                3.0,
+                -2.0,
+                -1.5,
+                max_iterations,
+            ) {
+                Ok(_) => {}
+                Err(e) => {
+                    eprintln!("Error launching kernel: {:?}", e);
+                }
+            }
+
+            image_result = image_buffer.retrieve().unwrap();
+        }
+        let elapsed_gpu_ms = start.elapsed().as_secs_f64() * 1000.0;
+
+        if iterations != 1 {
+            let bench_results = BenchResults {
+                gpu_time: elapsed_gpu_ms,
+                test: format!("{}x{}_max_iterations_{}", pixel_span, pixel_span, max_iterations),
+                size: iterations as usize,
+            };
+            results.push(bench_results.clone());
+            println!("Test: {} | iterations: {} | GPU Time: {:.3} ms", bench_results.test, bench_results.size, bench_results.gpu_time);
         }
     }
 

@@ -4,12 +4,11 @@ mod mandelbrot;
 
 use cuda::dmem::{Buffer, DSend};
 use cuda::gpu;
-
 use std::fs::File;
 use std::io::prelude::*;
 
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct BenchResults {
     pub gpu_time: f64,
     pub test: String,
@@ -102,18 +101,16 @@ pub fn bench1() -> Vec<BenchResults> {
         let x = buf_c.retrieve().unwrap();
         let elapsed_gpu_ms = start.elapsed().as_secs_f64() * 1000.0;
 
-        // println!(
-        //     "Matrix size: {}x{} | GPU: {:.3} ms",
-        //     n,
-        //     n,
-        //     elapsed_gpu_ms
-        // );
-
         results.push(BenchResults {
             gpu_time: elapsed_gpu_ms,
             test: format!("{}x{}", n, n),
             size: n,
         });
+    }
+
+    println!("Bench 1 Results:");
+    for result in &results {
+        println!("Test: {} | GPU Time: {:.3} ms", result.test, result.gpu_time);
     }
 
     results
@@ -175,6 +172,11 @@ pub fn bench2() -> Vec<BenchResults> {
         });
     }
 
+    println!("\nBench 2 Results:");
+    for result in &results {
+        println!("Test: {} | {} iterations | GPU Time: {:.3} ms", result.test, result.size, result.gpu_time);
+    }
+
     results
 }
 
@@ -182,29 +184,15 @@ pub fn bench2() -> Vec<BenchResults> {
 
 fn main() {
     // Run the benchmarks
-    println!("Running benchmarks...");
+    println!("Running Rust benchmarks...");
     println!("Running Bench 1...");
     let results1 = bench1();
     println!("Running Bench 2...");
     let results2 = bench2();
     println!("Running Bench 3...");
     let results3 = mandelbrot::bench3();
-
-    // Print the results
-    println!("Bench 1 Results:");
-    for result in &results1 {
-        println!("Test: {} | GPU Time: {:.3} ms", result.test, result.gpu_time);
-    }
-
-    println!("\nBench 2 Results:");
-    for result in &results2 {
-        println!("Test: {} - {} iters | GPU Time: {:.3} ms", result.test, result.size, result.gpu_time);
-    }
-
-    println!("\nBench 3 Results:");
-    for result in &results3 {
-        println!("Test: {} - {} max_iters | GPU Time: {:.3} ms", result.test, result.size, result.gpu_time);
-    }
+    println!("Running Bench 4...");
+    let results4 = mandelbrot::bench4();
 
     // write the results to a file
     // in a format that can be read by python
@@ -222,6 +210,10 @@ fn main() {
     for result in &results3 {
         //writeln!(res, "B3|{}|{}", result.test, result.gpu_time).unwrap();
         res.push_str(&format!("B3|{}|{}|{}\n", result.test, result.size, result.gpu_time));
+    }
+    for result in &results4 {
+        //writeln!(res, "B4|{}|{}", result.test, result.gpu_time).unwrap();
+        res.push_str(&format!("B4|{}|{}|{}\n", result.test, result.size, result.gpu_time));
     }
     let mut file = File::create("results/bench_results.txt").unwrap();
     file.write_all(res.as_bytes()).unwrap();

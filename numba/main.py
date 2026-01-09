@@ -75,6 +75,7 @@ def bench2():
         d_c.copy_to_host(c)
         elapsed = (time.perf_counter() - start) * 1000
         if not first:
+            print(f"bench2 - Size: {n}x{n}_{iter} | Time: {elapsed:.3f} ms")
             results.append({
                 'test': f'bench2_{n}x{n}_{iter}',
                 'size': iter,
@@ -87,6 +88,7 @@ if __name__ == "__main__":
     res1 = bench1()
     res2 = bench2()
     res3 = mandelbrot.bench3()
+    res4 = mandelbrot.bench4()
 
     # Save results to a file
     with open("results/bench_results.txt", "w") as f:
@@ -96,3 +98,5 @@ if __name__ == "__main__":
             f.write(f"B2|{res['test']}|{res['size']}|{res['gpu_time_ms']}\n")
         for res in res3:
             f.write(f"B3|{res['test']}|{res['max_iterations']}|{res['gpu_time_ms']}\n")
+        for res in res4:
+            f.write(f"B4|{res['test']}|{res['iterations']}|{res['gpu_time_ms']}\n")

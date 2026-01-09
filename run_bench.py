@@ -28,7 +28,8 @@ def get_rust_results():
     rust_results = {
         "B1": [],
         "B2": [],
-        "B3": []
+        "B3": [],
+        "B4": [],
     }
     results = ""
     with open("rust/results/bench_results.txt", "r") as f:
@@ -65,6 +66,8 @@ def run_cuda_benchmarks():
     subprocess.run(["./b2"])
     subprocess.run(["nvcc", "-o", "b3", "bench3.cu"], check=True)
     subprocess.run(["./b3"])
+    subprocess.run(["nvcc", "-o", "b4", "bench4.cu"], check=True)
+    subprocess.run(["./b4"])
     os.chdir("..")
 
 def get_cuda_results():
@@ -74,6 +77,7 @@ def get_cuda_results():
         "B1": [],
         "B2": [],
         "B3": [],
+        "B4": [],
     }
     results = ""
     with open("cudacpp/results/bench_results1.txt", "r") as f:
@@ -81,6 +85,8 @@ def get_cuda_results():
     with open("cudacpp/results/bench_results2.txt", "r") as f:
         results += "\n" + f.read()
     with open("cudacpp/results/bench_results3.txt", "r") as f:
+        results += "\n" + f.read()
+    with open("cudacpp/results/bench_results4.txt", "r") as f:
         results += "\n" + f.read()
     results = results.split("\n")
     for line in results:
@@ -107,22 +113,19 @@ def run_numba_benchmarks():
     """
     print("Running Numba benchmarks...")
     os.chdir("numba")
-    # activate the venv
-    # subprocess.run(["source", "../../.venv/bin/activate"], shell=True)
     # run the benchmarks
     subprocess.run([sys.executable, "main.py"], check=True)
-    # deactivate the venv
-    # subprocess.run(["deactivate"], shell=True)
     os.chdir("..")
 
 
 def get_numba_results():
     # retrieve the results
     # they are stored in bench_results.txt
-    cuda_results = {
+    numba_results = {
         "B1": [],
         "B2": [],
         "B3": [],
+        "B4": [],
     }
     results = ""
     with open("numba/results/bench_results.txt", "r") as f:
@@ -142,9 +145,9 @@ def get_numba_results():
         # fourth element is the time
         benchmark_time = line[3]
 
-        cuda_results[benchmark_name].append((benchmark_size,float(benchmark_time)))
+        numba_results[benchmark_name].append((benchmark_size,float(benchmark_time)))
 
-    return cuda_results
+    return numba_results
 
 
 def plot_benchmarks(all_benchmarks, file_name="combined_benchmarks.png", title="Benchmark Results",
@@ -227,7 +230,7 @@ if __name__ == "__main__":
     #     "Rust": results_rust["B1"],
     #     "CUDA": results_cuda["B1"],
     #     "Numba": results_numba["B1"],
-    # })
+    # }, title="Matrix multiplication", xlabel="Matrix size")
     plot_benchmarks_baseline(results_cuda["B1"], {
         "Rust": results_rust["B1"],
         "CUDA": results_cuda["B1"],
@@ -243,3 +246,8 @@ if __name__ == "__main__":
         "CUDA": results_cuda["B3"],
         "Numba": results_numba["B3"],
     }, title="Mandelbrot set generation", xlabel="Maximum number of iterations")
+    plot_benchmarks_baseline(results_cuda["B4"], {
+        "Rust": results_rust["B4"],
+        "CUDA": results_cuda["B4"],
+        "Numba": results_numba["B4"],
+    }, title="Mandelbrot set generation", xlabel="Number of iterations")

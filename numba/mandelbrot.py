@@ -56,10 +56,40 @@ def bench3():
         elapsed = (time.perf_counter() - start) * 1000
 
         if max_iterations != 1:
-            print(f"bench3 - Iteration: {max_iterations} | Time: {elapsed:.3f} ms")
+            print(f"bench3 - max_iterations: {max_iterations} | time: {elapsed:.3f} ms")
             results.append({
                 'test': f'bench3_{pixel_span}x{pixel_span}',
                 'max_iterations': max_iterations,
+                'gpu_time_ms': elapsed
+            })
+
+    return results
+
+def bench4():
+    max_iterations = 64
+    iterations_list = [1, 10, 20, 50, 100]
+    results = []
+
+    pixel_span = 8192
+    image = np.zeros((pixel_span, pixel_span), dtype=np.uint8)
+    d_image = cuda.device_array_like(image)
+
+    threads_per_block = 256
+    blocks = (pixel_span*pixel_span + threads_per_block - 1) // threads_per_block
+
+    for iterations in iterations_list:
+        start = time.perf_counter()
+        for _ in range(iterations):
+            create_mandelbrot_fractal[blocks, threads_per_block](d_image, pixel_span, 3.0, -2.0, -1.5, max_iterations)
+        cuda.synchronize()
+        d_image.copy_to_host(image)
+        elapsed = (time.perf_counter() - start) * 1000
+
+        if iterations != 1:
+            print(f"bench4 - max_iterations: {max_iterations} | iterations: {iterations} | time: {elapsed:.3f} ms")
+            results.append({
+                'test': f'bench4_{pixel_span}x{pixel_span}_max_iterations_{max_iterations}',
+                'iterations': iterations,
                 'gpu_time_ms': elapsed
             })
 
@@ -69,3 +99,4 @@ def bench3():
 
 if __name__ == '__main__':
     bench3()
+    bench4()
