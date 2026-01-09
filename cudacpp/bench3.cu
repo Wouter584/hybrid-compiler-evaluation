@@ -14,18 +14,18 @@ struct Complex {
     double imaginary;
 };
 
-__device__ bool has_escaped(const Complex c) {
+__device__ bool has_escaped(const Complex& c) {
     return c.real * c.real + c.imaginary * c.imaginary >= 4.0;
 }
 
-__device__ Complex iterate(const Complex z, const Complex c)
+__device__ Complex iterate(const Complex& z, const Complex& c)
 {
     const double real = (z.real * z.real) - (z.imaginary * z.imaginary) + c.real;
     const double imaginary = (z.real + z.real) * z.imaginary + c.imaginary;
     return Complex{real, imaginary};
 }
 
-__device__ uint8_t mandel(const Complex c, const int max_iters)
+__device__ uint8_t mandel(const Complex& c, const int& max_iters)
 {
     Complex z = c;
     for (int i = 0; i < max_iters; ++i) {
@@ -49,8 +49,8 @@ __device__ uint8_t mandel(const Complex c, const int max_iters)
         } \
     } while (0)
 
-__global__ void create_mandelbrot_fractal(uint8_t* image, const int pixel_span, const double coordinate_span,
-    const double real_start, const double i_start, const int max_iterations) {
+__global__ void create_mandelbrot_fractal(uint8_t* image, const int& pixel_span, const double& coordinate_span,
+    const double& real_start, const double& i_start, const int& max_iterations) {
     const int tid = blockIdx.x * blockDim.x + threadIdx.x;
     const int x_pixel = tid / pixel_span;
     const int y_pixel = tid % pixel_span;
