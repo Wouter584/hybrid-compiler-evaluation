@@ -51,7 +51,6 @@ def bench3():
     for max_iterations in max_iterations_list:
         start = time.perf_counter()
         create_mandelbrot_fractal[blocks, threads_per_block](d_image, pixel_span, 3.0, -2.0, -1.5, max_iterations)
-        cuda.synchronize()
         d_image.copy_to_host(image)
         elapsed = (time.perf_counter() - start) * 1000
 
@@ -81,8 +80,10 @@ def bench4():
         start = time.perf_counter()
         for _ in range(iterations):
             create_mandelbrot_fractal[blocks, threads_per_block](d_image, pixel_span, 3.0, -2.0, -1.5, max_iterations)
-        cuda.synchronize()
+            cuda.synchronize()
+
         d_image.copy_to_host(image)
+
         elapsed = (time.perf_counter() - start) * 1000
 
         if iterations != 1:

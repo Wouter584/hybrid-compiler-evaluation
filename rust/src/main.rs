@@ -3,7 +3,7 @@
 mod mandelbrot;
 
 use cuda::dmem::{Buffer, DSend};
-use cuda::gpu;
+use cuda::{device_sync, gpu};
 use std::fs::File;
 use std::io::prelude::*;
 
@@ -94,9 +94,19 @@ pub fn bench1() -> Vec<BenchResults> {
 
         let start = Instant::now();
 
-        matrix_mul
-            .launch_with_dptr(threads_per_block, blocks, &mut d_a, &mut d_b, &mut d_buf_c, &mut d_n)
-            .unwrap();
+        match matrix_mul.launch_with_dptr(
+            threads_per_block,
+            blocks,
+            &mut d_a,
+            &mut d_b,
+            &mut d_buf_c,
+            &mut d_n
+        ) {
+            Ok(_) => {}
+            Err(e) => {
+                eprintln!("Error launching matrix mul kernel: {:?}", e);
+            }
+        }
 
         let x = buf_c.retrieve().unwrap();
         let elapsed_gpu_ms = start.elapsed().as_secs_f64() * 1000.0;
@@ -145,7 +155,7 @@ pub fn bench2() -> Vec<BenchResults> {
 
         let mut d_a = a.as_slice().to_device().unwrap();
         let mut d_b = b.as_slice().to_device().unwrap();
-        let mut buf_c = Buffer::<i32>::alloc(total).unwrap().to_device().unwrap();
+        let mut d_buf_c = Buffer::<i32>::alloc(total).unwrap().to_device().unwrap();
 
         let mut d_n = (n as i32).to_device().unwrap();
 
@@ -155,14 +165,27 @@ pub fn bench2() -> Vec<BenchResults> {
         let start = Instant::now();
 
         for _ in 0..iter {
-            matrix_mul
-                .launch_with_dptr(threads_per_block, blocks, &mut d_a, &mut d_b, &mut buf_c, &mut d_n)
-                .unwrap();
-            // GPU sync is implicit in launch for many wrappers. If needed: gpu::sync().unwrap();
+            match matrix_mul.launch_with_dptr(
+                threads_per_block, 
+                blocks, 
+                &mut d_a, 
+                &mut d_b, 
+                &mut d_buf_c, 
+                &mut d_n
+            ) {
+                Ok(_) => {}
+                Err(e) => {
+                    eprintln!("Error launching matrix mul kernel: {:?}", e);
+                }
+            }
+            match device_sync() {
+                Ok(_) => {}
+                Err(e) => {
+                    eprintln!("Error synchronizing device after fft kernel: {:?}", e);
+                }
+            }
         }
-
-
-        let x = buf_c.retrieve().unwrap();
+        d_buf_c.retrieve().unwrap();
         let elapsed_gpu_ms = start.elapsed().as_secs_f64() * 1000.0;
 
         results.push(BenchResults {

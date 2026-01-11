@@ -1,5 +1,5 @@
 use cuda::dmem::{Buffer};
-use cuda::gpu;
+use cuda::{device_sync, gpu};
 use image::ColorType;
 use std::path::Path;
 use std::time::Instant;
@@ -105,7 +105,7 @@ pub fn bench3() -> Vec<BenchResults> {
         ) {
             Ok(_) => {}
             Err(e) => {
-                eprintln!("Error launching kernel: {:?}", e);
+                eprintln!("Error launching mandelbrot kernel: {:?}", e);
             }
         }
         image_buffer.retrieve().unwrap();
@@ -152,12 +152,19 @@ pub fn bench4() -> Vec<BenchResults> {
             ) {
                 Ok(_) => {}
                 Err(e) => {
-                    eprintln!("Error launching kernel: {:?}", e);
+                    eprintln!("Error launching mandelbrot kernel: {:?}", e);
                 }
             }
-
-            image_result = image_buffer.retrieve().unwrap();
+            match device_sync() {
+                Ok(_) => {}
+                Err(e) => {
+                    eprintln!("Error synchronizing device after mandelbrot kernel: {:?}", e);
+                }
+            }
         }
+
+        image_result = image_buffer.retrieve().unwrap();
+
         let elapsed_gpu_ms = start.elapsed().as_secs_f64() * 1000.0;
 
         if iterations != 1 {

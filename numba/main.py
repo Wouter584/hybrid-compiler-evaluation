@@ -35,10 +35,9 @@ def bench1():
 
         start = time.perf_counter()
         matrix_mul[blocks, threads_per_block](d_a, d_b, d_c, n)
-        cuda.synchronize()
+        d_c.copy_to_host(c)
         elapsed = (time.perf_counter() - start) * 1000
 
-        d_c.copy_to_host(c)
 
         if n != 1:
             print(f"bench1 - Size: {n}x{n} | Time: {elapsed:.3f} ms")
@@ -71,8 +70,10 @@ def bench2():
         start = time.perf_counter()
         for _ in range(iter):
             matrix_mul[blocks, threads_per_block](d_a, d_b, d_c, n)
-        cuda.synchronize()
+            cuda.synchronize()
+
         d_c.copy_to_host(c)
+
         elapsed = (time.perf_counter() - start) * 1000
         if not first:
             print(f"bench2 - Size: {n}x{n}_{iter} | Time: {elapsed:.3f} ms")

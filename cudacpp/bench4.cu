@@ -110,10 +110,11 @@ int main() {
         {
             create_mandelbrot_fractal<<<blocks, threads_per_block>>>(d_image, pixel_span,
                 3.0, -2.0, -1.5, max_iterations);
-            CHECK_CUDA(cudaGetLastError());
             CHECK_CUDA(cudaDeviceSynchronize());
-            CHECK_CUDA(cudaMemcpy(image.data(), d_image, size, cudaMemcpyDeviceToHost));
         }
+
+        CHECK_CUDA(cudaMemcpy(image.data(), d_image, size, cudaMemcpyDeviceToHost));
+
         auto gpu_end = std::chrono::high_resolution_clock::now();
         const auto gpu_time = std::chrono::duration<double, std::milli>(gpu_end - gpu_start).count();
 

@@ -86,13 +86,11 @@ int main() {
     
         auto gpu_start = std::chrono::high_resolution_clock::now();
         matrix_mul<<<blocks, threads_per_block>>>(d_a, d_b, d_c, n);
-        CHECK_CUDA(cudaGetLastError());
 
         CHECK_CUDA(cudaMemcpy(c.data(), d_c, size, cudaMemcpyDeviceToHost));
 
         auto gpu_end = std::chrono::high_resolution_clock::now();
-        //auto gpu_time = std::chrono::duration_cast<std::chrono::milliseconds>(gpu_end - gpu_start).count();
-        auto gpu_time = std::chrono::duration<double, std::milli>(gpu_end - gpu_start).count();
+        const auto gpu_time = std::chrono::duration<double, std::milli>(gpu_end - gpu_start).count();
 
         std::cout << "GPU time: " << gpu_time << " ms" << std::endl;
 
