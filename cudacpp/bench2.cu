@@ -58,27 +58,26 @@ int main() {
     int n = 1024;
     size_t size = n * n * sizeof(int);
     BenchResult results[is_count];
+    
+    std::vector<int> a(n * n), b(n * n), c(n * n, 0);
+    for (int i = 0; i < n * n; ++i) {
+        a[i] = (i * 1234567) % 1000;
+        b[i] = (i * 7654321) % 1000;
+    }
+
+    int *d_a, *d_b, *d_c;
+    CHECK_CUDA(cudaMalloc(&d_a, size));
+    CHECK_CUDA(cudaMalloc(&d_b, size));
+    CHECK_CUDA(cudaMalloc(&d_c, size));
+
+    CHECK_CUDA(cudaMemcpy(d_a, a.data(), size, cudaMemcpyHostToDevice));
+    CHECK_CUDA(cudaMemcpy(d_b, b.data(), size, cudaMemcpyHostToDevice));
+
+    int threads_per_block = 64;
+    int blocks = (n * n + threads_per_block - 1) / threads_per_block;
 
     for (int index = 0; index < is_count; ++index) {
-        int iters = is[index];
-        std::vector<int> a(n * n), b(n * n), c(n * n, 0);
-        for (int i = 0; i < n * n; ++i) {
-            //a[i] = (i * 1234567) % 1000;
-            //b[i] = (i * 7654321) % 1000;
-            a[i] = i;
-            b[i] = i;
-        }
-
-        int *d_a, *d_b, *d_c;
-        CHECK_CUDA(cudaMalloc(&d_a, size));
-        CHECK_CUDA(cudaMalloc(&d_b, size));
-        CHECK_CUDA(cudaMalloc(&d_c, size));
-
-        CHECK_CUDA(cudaMemcpy(d_a, a.data(), size, cudaMemcpyHostToDevice));
-        CHECK_CUDA(cudaMemcpy(d_b, b.data(), size, cudaMemcpyHostToDevice));
-
-        int threads_per_block = 64;
-        int blocks = (n * n + threads_per_block - 1) / threads_per_block;
+        const int iters = is[index];
 
         auto gpu_start = std::chrono::high_resolution_clock::now();
         for (int iter = 0; iter < iters; ++iter) {

@@ -141,36 +141,35 @@ pub fn bench2() -> Vec<BenchResults> {
     let total = n * n;
     let iters = [1, 10, 20, 50, 100, 200, 500];
 
+    // Generate deterministic pseudo-random matrix data
+    let mut a = vec![0; n * n];
+    let mut b = vec![0; n * n];
+    for i in 0..n * n {
+        // random values
+        let v1 = (i * 1234567) % 1000;
+        let v2 = (i * 7654321) % 1000;
+        a[i] = v1 as i32;
+        b[i] = v2 as i32;
+    }
+
+    let mut d_a = a.as_slice().to_device().unwrap();
+    let mut d_b = b.as_slice().to_device().unwrap();
+    let mut d_buf_c = Buffer::<i32>::alloc(total).unwrap().to_device().unwrap();
+    let mut d_n = (n as i32).to_device().unwrap();
+
+    let threads_per_block = 64;
+    let blocks = (total + threads_per_block - 1) / threads_per_block;
+
     for &iter in &iters {
-        // Generate deterministic pseudo-random matrix data
-        let mut a = vec![0; n * n];
-        let mut b = vec![0; n * n];
-        for i in 0..n * n {
-            // random values
-            let v1 = (i * 1234567) % 1000;
-            let v2 = (i * 7654321) % 1000;
-            a[i] = v1 as i32;
-            b[i] = v2 as i32;
-        }
-
-        let mut d_a = a.as_slice().to_device().unwrap();
-        let mut d_b = b.as_slice().to_device().unwrap();
-        let mut d_buf_c = Buffer::<i32>::alloc(total).unwrap().to_device().unwrap();
-
-        let mut d_n = (n as i32).to_device().unwrap();
-
-        let threads_per_block = 64;
-        let blocks = (total + threads_per_block - 1) / threads_per_block;
-
         let start = Instant::now();
 
         for _ in 0..iter {
             match matrix_mul.launch_with_dptr(
-                threads_per_block, 
-                blocks, 
-                &mut d_a, 
-                &mut d_b, 
-                &mut d_buf_c, 
+                threads_per_block,
+                blocks,
+                &mut d_a,
+                &mut d_b,
+                &mut d_buf_c,
                 &mut d_n
             ) {
                 Ok(_) => {}

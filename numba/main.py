@@ -55,18 +55,19 @@ def bench2():
     iters = [1, 1, 10, 20, 50, 100, 200, 500]
     results = []
     first = True
+
+    a = np.array([(i * 1234567) % 1000 for i in range(total)], dtype=np.int32)
+    b = np.array([(i * 7654321) % 1000 for i in range(total)], dtype=np.int32)
+    c = np.zeros(total, dtype=np.int32)
+
+    d_a = cuda.to_device(a)
+    d_b = cuda.to_device(b)
+    d_c = cuda.device_array_like(c)
+
+    threads_per_block = 64
+    blocks = (total + threads_per_block - 1) // threads_per_block
+
     for iter in iters:
-        a = np.arange(total, dtype=np.int32)
-        b = np.arange(total, dtype=np.int32)
-        c = np.zeros(total, dtype=np.int32)
-
-        d_a = cuda.to_device(a)
-        d_b = cuda.to_device(b)
-        d_c = cuda.device_array_like(c)
-
-        threads_per_block = 64
-        blocks = (total + threads_per_block - 1) // threads_per_block
-
         start = time.perf_counter()
         for _ in range(iter):
             matrix_mul[blocks, threads_per_block](d_a, d_b, d_c, n)
