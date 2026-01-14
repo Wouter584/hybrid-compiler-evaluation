@@ -76,7 +76,7 @@ unsafe fn fft_kernel(mut result: Buffer<C64>,
                      x_input: Buffer<C64>,
                      width: usize, height: usize) {
     let tid = gpu::global_tid_x() as usize;
-    let i = tid / (height >> 1);// use crate::gpu::__nv_exp;
+    let i = tid / (height >> 1);
     let j = tid % (height >> 1);
     let temp = C64::new(0.0, -1.0 * PI * (i as f64) / (width as f64)
     ).exp() * x_input.get(i * height + j + (height >> 1));

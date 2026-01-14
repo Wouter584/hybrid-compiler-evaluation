@@ -32,31 +32,6 @@ unsafe fn matrix_mul(a: &[i32], b: &[i32], mut c: Buffer<i32>, n: i32) {
     }
 }
 
-// #[kernel]
-// unsafe fn old_matrix_mul(a: &[i32], b: &[i32], mut c: Buffer<i32>, n: i32) {
-//     let t = gpu::global_tid_x();
-//     let i = t / n;
-//     let j = t % n;
-//
-//     let raw_a = a.as_ptr();
-//     let raw_b = b.as_ptr();
-//     if i < n {
-//         let mut sum = 0;
-//         let mut k = 0;
-//         let itn = i * n;
-//         while k < n {
-//             let a_index = itn + k;
-//             let b_index = k * n + j;
-//             let ai = *raw_a.offset(a_index as isize);
-//             let bi = *raw_b.offset(b_index as isize);
-//             sum += ai * bi;
-//             k += 1;
-//         }
-//         let c_index = i * n + j;
-//         c.set(c_index as usize, sum);
-//     }
-// }
-
 pub fn bench1() -> Vec<BenchResults> {
     match matrix_mul.pre_compile() {
         Ok(_) => {},
