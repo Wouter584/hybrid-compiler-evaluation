@@ -101,12 +101,10 @@ FourierResult fast_fourier_transform(const std::vector<C64> &x, int width)
     const int x_size = n * sizeof(C64);
     const int matrix_size = width * width * sizeof(C64);
 
-    C64 *d_new_x, *d_matrix, *d_x, *d_width, *d_height;
+    C64 *d_new_x, *d_matrix, *d_x;
     CHECK_CUDA(cudaMalloc(&d_new_x, x_size));
     CHECK_CUDA(cudaMalloc(&d_matrix, matrix_size));
     CHECK_CUDA(cudaMalloc(&d_x, x_size));
-    CHECK_CUDA(cudaMalloc(&d_width, sizeof(int)));
-    CHECK_CUDA(cudaMalloc(&d_height, sizeof(int)));
 
     CHECK_CUDA(cudaMemcpy(d_matrix, matrix.data(), matrix_size, cudaMemcpyHostToDevice));
     CHECK_CUDA(cudaMemcpy(d_x, x.data(), x_size, cudaMemcpyHostToDevice));
