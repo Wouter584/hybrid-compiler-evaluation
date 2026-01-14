@@ -169,10 +169,10 @@ fn fast_fourier_transform(x: &[C64], mut width: usize) -> (Vec<C64>, Vec<BenchRe
     let mut d_buffer_2 = d_new_x_buffer;
 
     while width < n {
+        let start = Instant::now();
+
         d_width = width.to_device().unwrap();
         d_height = height.to_device().unwrap();
-
-        let start = Instant::now();
         match fft_kernel.launch_with_dptr(
             threads_per_block as usize,
             blocks as usize,
