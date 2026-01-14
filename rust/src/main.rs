@@ -1,7 +1,7 @@
 #![engine(cuda::engine)]
 
 mod mandelbrot;
-
+mod fast_fourier_transform;
 use cuda::dmem::{Buffer, DSend};
 use cuda::{device_sync, gpu};
 use std::fs::File;
@@ -215,6 +215,8 @@ fn main() {
     let results3 = mandelbrot::bench3();
     println!("Running Bench 4...");
     let results4 = mandelbrot::bench4();
+    println!("Running Bench 5...");
+    let results5 = fast_fourier_transform::bench5();
 
     // write the results to a file
     // in a format that can be read by python
@@ -222,21 +224,22 @@ fn main() {
     let mut res = "".to_string();
 
     for result in &results1 {
-        //writeln!(res, "B1|{}|{}", result.test, result.gpu_time).unwrap();
         res.push_str(&format!("B1|{}|{}|{}\n", result.test, result.size, result.gpu_time));
     }
     for result in &results2 {
-        //writeln!(res, "B2|{}|{}", result.test, result.gpu_time).unwrap();
         res.push_str(&format!("B2|{}|{}|{}\n", result.test, result.size, result.gpu_time));
     }
     for result in &results3 {
-        //writeln!(res, "B3|{}|{}", result.test, result.gpu_time).unwrap();
         res.push_str(&format!("B3|{}|{}|{}\n", result.test, result.size, result.gpu_time));
     }
     for result in &results4 {
-        //writeln!(res, "B4|{}|{}", result.test, result.gpu_time).unwrap();
         res.push_str(&format!("B4|{}|{}|{}\n", result.test, result.size, result.gpu_time));
     }
+    for result in &results5 {
+        res.push_str(&format!("B5|{}|{}|{}\n", result.test, result.size, result.gpu_time));
+    }
+    }
+
     let mut file = File::create("results/bench_results.txt").unwrap();
     file.write_all(res.as_bytes()).unwrap();
     println!("Benchmarks complete. Results written to bench_results.txt");

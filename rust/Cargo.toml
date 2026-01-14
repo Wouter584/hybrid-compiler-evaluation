@@ -14,6 +14,8 @@ cuda = { path = "../../rust-kernels/cuda" }
 
 dunce = "1.0.5"
 image = "=0.25.2"
+num = "0.4.3"
+rustfft = "6.4.1"
 
 
 [target.x86_64-unknown-linux-gnu]
