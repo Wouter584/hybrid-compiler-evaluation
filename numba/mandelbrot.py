@@ -9,6 +9,14 @@ import matplotlib.pyplot as plt
 
 from numba import cuda
 
+@cuda.jit
+def has_escaped(z_real, z_imaginary):
+    return z_real * z_real + z_imaginary * z_imaginary >= 4
+
+@cuda.jit
+def iterate(z_real:float, z_imaginary:float, c_real:float, c_imaginary:float):
+    z_real, z_imaginary = (z_real * z_real) - (z_imaginary * z_imaginary) + c_real, (z_real + z_real) * z_imaginary + c_imaginary
+    return z_real, z_imaginary
 
 @cuda.jit
 def mandel(c_real, c_imaginary, max_iters):
@@ -19,9 +27,9 @@ def mandel(c_real, c_imaginary, max_iters):
     """
     z_real, z_imaginary = c_real, c_imaginary
     for i in range(max_iters):
-        if z_real * z_real + z_imaginary * z_imaginary >= 4:
+        if  has_escaped(z_real, z_imaginary):
             return (255 * i) // max_iters
-        z_real, z_imaginary = (z_real * z_real) - (z_imaginary * z_imaginary) + c_real, (z_real + z_real) * z_imaginary + c_imaginary
+        z_real, z_imaginary = iterate(z_real, z_imaginary, c_real, c_imaginary)
     return 255
 
 @cuda.jit
