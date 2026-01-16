@@ -39,9 +39,9 @@ def FFT_vectorized(x):
     return X.ravel()
 
 @cuda.jit
-def exp(x:complex):
+def exp(x:np.complex128):
     exp_x = math.exp(x.real)
-    return complex(exp_x * math.cos(x.imag), exp_x * math.sin(x.imag))
+    return np.complex128(exp_x * math.cos(x.imag), exp_x * math.sin(x.imag))
 
 @cuda.jit
 def matrix_mul(result: np.ndarray, a: np.ndarray, b: np.ndarray, width: int, height: int):
@@ -72,17 +72,17 @@ def fast_fourier_transform(x, width: int):
         raise ValueError("size of x must be a power of 2")
 
     # Precompile the kernels.
-    d_temp1 = cuda.to_device(np.zeros(1, dtype=complex))
-    d_temp2 = cuda.to_device(np.zeros(1, dtype=complex))
-    d_temp3 = cuda.to_device(np.zeros(1, dtype=complex))
+    d_temp1 = cuda.to_device(np.zeros(1, dtype=np.complex128))
+    d_temp2 = cuda.to_device(np.zeros(1, dtype=np.complex128))
+    d_temp3 = cuda.to_device(np.zeros(1, dtype=np.complex128))
     matrix_mul[1, 1](d_temp1, d_temp2, d_temp3, 0, 0)
     fft_kernel[1, 1](d_temp1, d_temp2, 0, 0)
     cuda.synchronize()
 
     height = n // width
 
-    new_x = np.zeros(shape=n, dtype=complex)
-    matrix = np.zeros(shape=width*width, dtype=complex)
+    new_x = np.zeros(shape=n, dtype=np.complex128)
+    matrix = np.zeros(shape=width*width, dtype=np.complex128)
     for i in range(width):
         for j in range(width):
             matrix[i * width + j] = cmath.exp(-2j * math.pi * i * j / width)
@@ -139,7 +139,7 @@ def fast_fourier_transform(x, width: int):
 
 def bench5():
     n = 8192*16*16
-    pseudo_random_input = np.array([i * 12345.6789 for i in range(n)], dtype=complex)
+    pseudo_random_input = np.array([i * 12345.6789 for i in range(n)], dtype=np.complex128)
     (output, bench_result) = fast_fourier_transform(pseudo_random_input, 32)
     correct_result = np.fft.fft(pseudo_random_input)
 
