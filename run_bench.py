@@ -242,24 +242,24 @@ if __name__ == "__main__":
         "Rust": results_rust["B1"],
         "CUDA": results_cuda["B1"],
         "Numba": results_numba["B1"],
-    }, title="Matrix multiplication", xlabel="Matrix size")
+    }, file_name="B1", title="Matrix multiplication", xlabel="Matrix size")
     plot_benchmarks_baseline(results_cuda["B2"], {
         "Rust": results_rust["B2"],
         "CUDA": results_cuda["B2"],
         "Numba": results_numba["B2"],
-    }, title="Matrix multiplication", xlabel="Number of iterations")
+    }, file_name="B2", title="Matrix multiplication", xlabel="Number of iterations")
     plot_benchmarks_baseline(results_cuda["B3"], {
         "Rust": results_rust["B3"],
         "CUDA": results_cuda["B3"],
         "Numba": results_numba["B3"],
-    }, title="Mandelbrot set generation", xlabel="Maximum number of iterations")
+    }, file_name="B3", title="Mandelbrot set generation", xlabel="Maximum number of iterations")
     plot_benchmarks_baseline(results_cuda["B4"], {
         "Rust": results_rust["B4"],
         "CUDA": results_cuda["B4"],
         "Numba": results_numba["B4"],
-    }, title="Mandelbrot set generation", xlabel="Number of iterations")
+    }, file_name="B4", title="Mandelbrot set generation", xlabel="Number of iterations")
     plot_benchmarks_baseline(results_cuda["B5"], {
         "Rust": results_rust["B5"],
         "CUDA": results_cuda["B5"],
         "Numba": results_numba["B5"],
-    }, title="Fast fourier transform", xlabel="Iteration")
+    }, file_name="B5", title="Fast fourier transform", xlabel="Iteration")
