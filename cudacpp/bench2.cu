@@ -95,14 +95,14 @@ int main() {
             " - Iterations: " << iters << 
          " - GPU time: " << gpu_time << " ms" << std::endl;
 
-        CHECK_CUDA(cudaFree(d_a));
-        CHECK_CUDA(cudaFree(d_b));
-        CHECK_CUDA(cudaFree(d_c));
-
         results[index].size = iters;
         results[index].gpu_time = gpu_time;
         results[index].title = std::to_string(n) + "x" + std::to_string(n) + " - " + std::to_string(iters) + " iterations";
     }
+    CHECK_CUDA(cudaFree(d_a));
+    CHECK_CUDA(cudaFree(d_b));
+    CHECK_CUDA(cudaFree(d_c));
+
     export_bench_results(results, is_count);
     std::cout << "All done!" << std::endl;
     return 0;
