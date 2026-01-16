@@ -54,7 +54,7 @@ void export_bench_results(const BenchResult* results, int count) {
              << results[i].gpu_time << std::endl;
     }
     file.close();
-    std::cout << "Results exported to bench_results.txt" << std::endl;
+    std::cout << "Results exported to bench_results1.txt" << std::endl;
 }
 
 int main() {
