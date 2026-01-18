@@ -123,13 +123,13 @@ fn fast_fourier_transform(x: &[C64], mut width: usize) -> (Vec<C64>, Vec<BenchRe
     let mut d_new_x_buffer = new_x_buffer.to_device().unwrap();
     let mut d_matrix = matrix.as_slice().to_device().unwrap();
     let mut d_x = x.to_device().unwrap();
-    let mut d_width = width.to_device().unwrap();
-    let mut d_height = height.to_device().unwrap();
 
     let threads_per_block = 256;
     let blocks = n / threads_per_block;
 
     let start = Instant::now();
+    let mut d_width = width.to_device().unwrap();
+    let mut d_height = height.to_device().unwrap();
     match matrix_mul.launch_with_dptr(
         threads_per_block as usize,
         blocks as usize,

@@ -62,13 +62,12 @@ pub fn bench1() -> Vec<BenchResults> {
         let mut d_b = b.as_slice().to_device().unwrap();
         let buf_c = Buffer::<i32>::alloc(total).unwrap();
         let mut d_buf_c = buf_c.to_device().unwrap();
-        let mut d_n = (n as i32).to_device().unwrap();
 
         let threads_per_block = 64;
         let blocks = (n * n + threads_per_block - 1) / threads_per_block;
 
         let start = Instant::now();
-
+        let mut d_n = (n as i32).to_device().unwrap();
         match matrix_mul.launch_with_dptr(
             threads_per_block,
             blocks,
@@ -130,14 +129,13 @@ pub fn bench2() -> Vec<BenchResults> {
     let mut d_a = a.as_slice().to_device().unwrap();
     let mut d_b = b.as_slice().to_device().unwrap();
     let mut d_buf_c = Buffer::<i32>::alloc(total).unwrap().to_device().unwrap();
-    let mut d_n = (n as i32).to_device().unwrap();
 
     let threads_per_block = 64;
     let blocks = (total + threads_per_block - 1) / threads_per_block;
 
     for &iter in &iters {
         let start = Instant::now();
-
+        let mut d_n = (n as i32).to_device().unwrap();
         for _ in 0..iter {
             match matrix_mul.launch_with_dptr(
                 threads_per_block,
