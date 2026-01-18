@@ -204,10 +204,13 @@ int main() {
 
     cufftHandle plan;
     cufftPlan1d(&plan, n, CUFFT_Z2Z, 1);
+    auto gpu_start = std::chrono::high_resolution_clock::now();
     cufftExecZ2Z(plan, d_in, d_out, CUFFT_FORWARD);
     cudaDeviceSynchronize();
-
     cudaMemcpy(complex_pseudo_random_input.data(), d_out, complex_size, cudaMemcpyDeviceToHost);
+    auto gpu_end = std::chrono::high_resolution_clock::now();
+    auto gpu_time = std::chrono::duration<double, std::milli>(gpu_end - gpu_start).count();
+    std::cout << "Total CUFFT time: " << gpu_time << " ms" << std::endl;
 
     cufftDestroy(plan);
     cudaFree(d_in);
@@ -215,7 +218,11 @@ int main() {
 
     // Calculate with fast_fourier_transform method
     constexpr int width = 32;
+    gpu_start = std::chrono::high_resolution_clock::now();
     const auto output = fast_fourier_transform(pseudo_random_input, width);
+    gpu_end = std::chrono::high_resolution_clock::now();
+    gpu_time = std::chrono::duration<double, std::milli>(gpu_end - gpu_start).count();
+    std::cout << "Total fast_fourier_transform time: " << gpu_time << " ms" << std::endl;
 
     double max_distance = 0.0;
     for (size_t i = 0; i < output.transform_result.size() && i < complex_pseudo_random_input.size(); ++i) {
