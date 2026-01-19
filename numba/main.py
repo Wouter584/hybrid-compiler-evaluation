@@ -3,6 +3,7 @@ from numba import cuda
 import time
 import mandelbrot
 import fast_fourier_transform
+import reduction
 
 @cuda.jit
 def matrix_mul(a, b, c, n):
@@ -93,6 +94,7 @@ if __name__ == "__main__":
     res3 = mandelbrot.bench3()
     res4 = mandelbrot.bench4()
     res5 = fast_fourier_transform.bench5()
+    res6 = reduction.bench6()
 
     # Save results to a file
     with open("results/bench_results.txt", "w") as f:
@@ -106,3 +108,5 @@ if __name__ == "__main__":
             f.write(f"B4|{res['test']}|{res['iterations']}|{res['gpu_time_ms']}\n")
         for res in res5:
             f.write(f"B5|{res['test']}|{res['iteration']}|{res['gpu_time_ms']}\n")
+        for res in res6:
+            f.write(f"B6|{res['test']}|{res['iterations']}|{res['gpu_time_ms']}\n")

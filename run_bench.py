@@ -71,6 +71,8 @@ def run_cuda_benchmarks():
     subprocess.run(["./b4"])
     subprocess.run(["nvcc", "-o", "b5", "bench5.cu", "-lcufft"], check=True)
     subprocess.run(["./b5"])
+    subprocess.run(["nvcc", "-o", "b6", "bench6.cu"], check=True)
+    subprocess.run(["./b6"])
     os.chdir("..")
 
 def get_cuda_results():
@@ -82,6 +84,7 @@ def get_cuda_results():
         "B3": [],
         "B4": [],
         "B5": [],
+        "B6": [],
     }
     results = ""
     with open("cudacpp/results/bench_results1.txt", "r") as f:
@@ -93,6 +96,8 @@ def get_cuda_results():
     with open("cudacpp/results/bench_results4.txt", "r") as f:
         results += "\n" + f.read()
     with open("cudacpp/results/bench_results5.txt", "r") as f:
+        results += "\n" + f.read()
+    with open("cudacpp/results/bench_results6.txt", "r") as f:
         results += "\n" + f.read()
     results = results.split("\n")
     for line in results:
@@ -133,6 +138,7 @@ def get_numba_results():
         "B3": [],
         "B4": [],
         "B5": [],
+        "B6": [],
     }
     results = ""
     with open("numba/results/bench_results.txt", "r") as f:
@@ -263,3 +269,7 @@ if __name__ == "__main__":
         "CUDA": results_cuda["B5"],
         "Numba": results_numba["B5"],
     }, file_name="B5", title="Fast fourier transform", xlabel="Iteration")
+    plot_benchmarks_baseline(results_cuda["B6"], {
+        "CUDA": results_cuda["B6"],
+        "Numba": results_numba["B6"],
+    }, file_name="B6", title="Sum reduction", xlabel="Number of iterations")
