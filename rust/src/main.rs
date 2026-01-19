@@ -211,7 +211,6 @@ fn main() {
     for result in &results5 {
         res.push_str(&format!("B5|{}|{}|{}\n", result.test, result.size, result.gpu_time));
     }
-    }
 
     let mut file = File::create("results/bench_results.txt").unwrap();
     file.write_all(res.as_bytes()).unwrap();
