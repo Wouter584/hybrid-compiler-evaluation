@@ -6,7 +6,7 @@
 import os
 import subprocess
 import sys
-
+import time
 import matplotlib.pyplot as plt
 
 import re
@@ -162,6 +162,135 @@ def get_numba_results():
 
     return numba_results
 
+def run_all_benchmarks(iterations:int):
+    result_dict = {
+        "rust": [],
+        "cuda": [],
+        "numba": [],
+    } # Structure: {language: [{bench_name: [(size, average_time)]}]}
+    start = time.perf_counter()
+    for iteration in range(iterations):
+        run_rust_benchmarks()
+        result_dict["rust"].append(get_rust_results())
+        run_cuda_benchmarks()
+        result_dict["cuda"].append(get_cuda_results())
+        run_numba_benchmarks()
+        result_dict["numba"].append(get_numba_results())
+        print("Finished benchmarks iteration:", iteration)
+    elapsed = (time.perf_counter() - start) / 60
+    print("Elapsed minutes for all benchmarks:", elapsed)
+
+    ordered_results = {
+        "rust": {},
+        "cuda": {},
+        "numba": {},
+    } # Structure: {language: {bench_name: {size, [gpu_time]}}}
+    for language, results in result_dict.items():
+        for bench_dict in results:
+            for bench_name, bench_results in bench_dict.items():
+                if bench_name not in ordered_results[language]:
+                    ordered_results[language][bench_name] = {}
+                for size, gpu_time in bench_results:
+                    if size not in ordered_results[language][bench_name]:
+                        ordered_results[language][bench_name][size] = [gpu_time]
+                        continue
+                    else:
+                        ordered_results[language][bench_name][size].append(gpu_time)
+
+    results_to_file(ordered_results, "all_results.txt")
+
+
+def results_to_file(results, file_name):
+    """
+    Output results as a file.
+    :param results: Structure: {language: {bench_name: {size, [gpu_time]}}}
+    :param file_name:
+    :return:
+    """
+    with open(file_name, "w") as f:
+        for language, language_results_dict in results.items():
+            for bench_name, bench_results_dict in language_results_dict.items():
+                for size, gpu_times in bench_results_dict.items():
+                    f.write(f"{language}|{bench_name}|{size}|")
+                    for gpu_time in gpu_times:
+                        f.write(f"{gpu_time},")
+                    f.write(f"\n")
+
+def file_to_results(file_name):
+    """
+    Returns results from a file.
+    :param file_name:
+    :return: Structure: {language: {bench_name: {size, [gpu_time]}}}
+    """
+    results = {}
+    with open(file_name, "r") as f:
+        contents = f.read()
+    lines = contents.split("\n")
+    for line in lines:
+        if line == "":
+            continue
+        # split the line by |
+        line = line.split("|")
+        # first element is the language
+        language = line[0]
+        # second element is the benchmark name
+        bench_name = line[1]
+        # third element is the size
+        bench_size = line[2]
+        # fourth element is a list of times separated by a comma, without the last empty element.
+        bench_times = line[3].split(",")[:-1]
+        if language not in results:
+            results[language] = {}
+        if bench_name not in results[language]:
+            results[language][bench_name] = {}
+        if bench_size not in results[language][bench_name]:
+            results[language][bench_name][bench_size] = []
+
+        for time in bench_times:
+            results[language][bench_name][bench_size].append(float(time))
+
+    return results
+
+def results_as_tuples(results):
+    """
+    Convert results to a single value for each bench (tuple instead of dict).
+    :param results: Structure: {language: {bench_name: {size, [gpu_time]}}}
+    :return: Structure: {language: {bench_name: [(size, average_time)]}}
+    """
+    results_as_tuple = {}
+    for language, language_results_dict in results.items():
+        for bench_name, bench_results_dict in language_results_dict.items():
+            for bench_size, bench_times in bench_results_dict.items():
+                if language not in results_as_tuple:
+                    results_as_tuple[language] = {}
+                if bench_name not in results_as_tuple[language]:
+                    results_as_tuple[language][bench_name] = []
+                results_as_tuple[language][bench_name].append((bench_size, bench_times[0]))
+    return results_as_tuple
+
+
+def get_all_averages():
+    average_results = {} # Structure: {language: {bench_name: {size, [gpu_time]}}}
+    all_results = file_to_results("all_results.txt")
+
+    for language, language_results_dict in all_results.items():
+        for bench_name, bench_results_dict in language_results_dict.items():
+            for bench_size, bench_times in bench_results_dict.items():
+                if language not in average_results:
+                    average_results[language] = {}
+                if bench_name not in average_results[language]:
+                    average_results[language][bench_name] = {}
+                if bench_size not in average_results[language][bench_name]:
+                    average_results[language][bench_name][bench_size] = []
+
+                average_time = 0.0
+                for time in bench_times:
+                    average_time += time
+                average_time = average_time / len(bench_times)
+                average_results[language][bench_name][bench_size].append(average_time)
+
+    results_to_file(average_results, "averaged_results")
+    return results_as_tuples(average_results)
 
 def plot_benchmarks(all_benchmarks, file_name="combined_benchmarks.png", title="Benchmark Results",
                     xlabel="Size", ylabel="Time (ms)"):
@@ -233,12 +362,11 @@ def plot_benchmarks_baseline(baseline, all_benchmarks, file_name="combined_bench
     plt.show()
 
 if __name__ == "__main__":
-    run_cuda_benchmarks()
-    run_numba_benchmarks()
-    run_rust_benchmarks()
-    results_rust = get_rust_results()
-    results_cuda = get_cuda_results()
-    results_numba = get_numba_results()
+    run_all_benchmarks(10)
+    averages = get_all_averages()
+    results_rust = averages["rust"]
+    results_cuda = averages["cuda"]
+    results_numba = averages["numba"]
     # plot_benchmarks({
     #     "Rust": results_rust["B1"],
     #     "CUDA": results_cuda["B1"],
