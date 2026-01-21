@@ -9,10 +9,10 @@ use rustfft::FftPlanner;
 use crate::BenchResults;
 
 #[derive(Debug, Clone, Copy)]
-struct C64 { re: f64, im: f64 }
+pub struct C64 { re: f64, im: f64 }
 
 impl C64 {
-    fn new(re: f64, im: f64) -> Self {
+    pub fn new(re: f64, im: f64) -> Self {
         C64 { re, im }
     }
 
@@ -59,7 +59,7 @@ impl Mul for C64 {
 }
 
 #[kernel]
-unsafe fn matrix_mul(mut result: Buffer<C64>,
+pub unsafe fn matrix_mul(mut result: Buffer<C64>,
                      a: &[C64], b: &[C64], width: usize, height: usize) {
     let tid = gpu::global_tid_x() as usize;
     let i = tid / height;

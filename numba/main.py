@@ -4,6 +4,7 @@ import time
 import mandelbrot
 import fast_fourier_transform
 import reduction
+import complex_matrix_multiplication
 
 @cuda.jit
 def matrix_mul(a, b, c, n):
@@ -95,6 +96,9 @@ if __name__ == "__main__":
     res4 = mandelbrot.bench4()
     res5 = fast_fourier_transform.bench5()
     res6 = reduction.bench6()
+    res7 = complex_matrix_multiplication.bench7()
+    res8 = complex_matrix_multiplication.bench8()
+
 
     # Save results to a file
     with open("results/bench_results.txt", "w") as f:
@@ -110,3 +114,7 @@ if __name__ == "__main__":
             f.write(f"B5|{res['test']}|{res['iteration']}|{res['gpu_time_ms']}\n")
         for res in res6:
             f.write(f"B6|{res['test']}|{res['iterations']}|{res['gpu_time_ms']}\n")
+        for res in res7:
+            f.write(f"B7|{res['test']}|{res['size']}|{res['gpu_time_ms']}\n")
+        for res in res8:
+            f.write(f"B8|{res['test']}|{res['size']}|{res['gpu_time_ms']}\n")

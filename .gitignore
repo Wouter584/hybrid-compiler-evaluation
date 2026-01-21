@@ -5,6 +5,8 @@
 /cudacpp/b4
 /cudacpp/b5
 /cudacpp/b6
+/cudacpp/b7
+/cudacpp/b8
 /numba/results
 /rust/results
 /cudacpp/results
@@ -15,3 +17,5 @@
 /B4.png
 /B5.png
 /B6.png
+/B7.png
+/B8.png

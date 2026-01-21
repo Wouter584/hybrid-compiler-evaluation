@@ -31,6 +31,8 @@ def get_rust_results():
         "B3": [],
         "B4": [],
         "B5": [],
+        "B7": [],
+        "B8": [],
     }
     results = ""
     with open("rust/results/bench_results.txt", "r") as f:
@@ -73,6 +75,10 @@ def run_cuda_benchmarks():
     subprocess.run(["./b5"])
     subprocess.run(["nvcc", "-o", "b6", "bench6.cu"], check=True)
     subprocess.run(["./b6"])
+    subprocess.run(["nvcc", "-o", "b7", "bench7.cu"], check=True)
+    subprocess.run(["./b7"])
+    subprocess.run(["nvcc", "-o", "b8", "bench8.cu"], check=True)
+    subprocess.run(["./b8"])
     os.chdir("..")
 
 def get_cuda_results():
@@ -85,6 +91,8 @@ def get_cuda_results():
         "B4": [],
         "B5": [],
         "B6": [],
+        "B7": [],
+        "B8": [],
     }
     results = ""
     with open("cudacpp/results/bench_results1.txt", "r") as f:
@@ -98,6 +106,10 @@ def get_cuda_results():
     with open("cudacpp/results/bench_results5.txt", "r") as f:
         results += "\n" + f.read()
     with open("cudacpp/results/bench_results6.txt", "r") as f:
+        results += "\n" + f.read()
+    with open("cudacpp/results/bench_results7.txt", "r") as f:
+        results += "\n" + f.read()
+    with open("cudacpp/results/bench_results8.txt", "r") as f:
         results += "\n" + f.read()
     results = results.split("\n")
     for line in results:
@@ -139,6 +151,8 @@ def get_numba_results():
         "B4": [],
         "B5": [],
         "B6": [],
+        "B7": [],
+        "B8": [],
     }
     results = ""
     with open("numba/results/bench_results.txt", "r") as f:
@@ -401,3 +415,13 @@ if __name__ == "__main__":
         "CUDA": results_cuda["B6"],
         "Numba": results_numba["B6"],
     }, file_name="B6", title="Sum reduction", xlabel="Number of iterations")
+    plot_benchmarks_baseline(results_cuda["B7"], {
+        "Rust": results_rust["B7"],
+        "CUDA": results_cuda["B7"],
+        "Numba": results_numba["B7"],
+    }, file_name="B7", title="Complex matrix multiplication", xlabel="Matrix size")
+    plot_benchmarks_baseline(results_cuda["B8"], {
+        "Rust": results_rust["B8"],
+        "CUDA": results_cuda["B8"],
+        "Numba": results_numba["B8"],
+    }, file_name="B8", title="Complex matrix multiplication", xlabel="Number of iterations")
