@@ -28,9 +28,6 @@ __global__ void matrix_mul(const int* a, const int* b, int* c, int n) {
     }
 }
 
-
-
-
 const int ns[] = { 16, 64, 256, 512, 1024, 2048, 4096, 8192 };
 const int ns_count = sizeof(ns) / sizeof(ns[0]);
 
@@ -65,7 +62,7 @@ int main() {
 
         std::cout << "Matrix size: " << n << "x" << n << std::endl;
 
-        std::vector<int> a(n * n), b(n * n), c(n * n, 0), c_cpu(n * n, 0);
+        std::vector<int> a(n * n), b(n * n), c(n * n, 0);
         
         for (int i = 0; i < n * n; ++i) {
             a[i] = (i * 1234567) % 1000;
