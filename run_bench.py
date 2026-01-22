@@ -204,7 +204,7 @@ def run_all_benchmarks(iterations:int):
         result_dict["cuda"].append(get_cuda_results())
         run_numba_benchmarks()
         result_dict["numba"].append(get_numba_results())
-        print("Finished benchmarks iteration:", iteration)
+        print("Finished benchmarks iteration:", iteration + 1)
     elapsed = (time.perf_counter() - start) / 60
     print("Elapsed minutes for all benchmarks:", elapsed)
 
