@@ -438,7 +438,7 @@ if __name__ == "__main__":
         "Rust": results_rust["B8"],
         "CUDA": results_cuda["B8"],
         "Numba": results_numba["B8"],
-    }, file_name="B8", title="Complex matrix multiplication", xlabel="Number of iterations")
+    }, file_name="B8", title="Complex matrix multiplication", xlabel="Number of iterations (size 512)")
     plot_benchmarks_baseline(results_cuda["B9"], {
         "Rust": results_rust["B9"],
         "CUDA": results_cuda["B9"],

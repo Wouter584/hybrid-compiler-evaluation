@@ -39,7 +39,7 @@ def bench7():
     return results
 
 def bench8():
-    n = 1024
+    n = 512
     total = n * n
     iters = [1, 1, 10, 20, 50, 100, 200]
     results = []

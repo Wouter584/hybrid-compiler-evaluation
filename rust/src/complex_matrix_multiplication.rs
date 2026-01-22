@@ -83,7 +83,7 @@ pub fn bench8() -> Vec<BenchResults> {
 
     let mut results = Vec::new();
 
-    let n = 1024usize;
+    let n = 512usize;
     let total = n * n;
     let iters = [1, 10, 20, 50, 100, 200];
 

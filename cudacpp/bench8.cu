@@ -76,7 +76,7 @@ const int is[] = { 1, 10, 20, 50, 100, 200 };
 const int is_count = sizeof(is) / sizeof(is[0]);
 
 int main() {
-    int n = 1024;
+    int n = 512;
     size_t size = n * n * sizeof(C64);
     BenchResult results[is_count];
 
