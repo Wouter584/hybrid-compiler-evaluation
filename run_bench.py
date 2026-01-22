@@ -33,6 +33,8 @@ def get_rust_results():
         "B5": [],
         "B7": [],
         "B8": [],
+        "B9": [],
+        "B10": [],
     }
     results = ""
     with open("rust/results/bench_results.txt", "r") as f:
@@ -79,6 +81,10 @@ def run_cuda_benchmarks():
     subprocess.run(["./b7"])
     subprocess.run(["nvcc", "-o", "b8", "bench8.cu"], check=True)
     subprocess.run(["./b8"])
+    subprocess.run(["nvcc", "-o", "b9", "bench9.cu"], check=True)
+    subprocess.run(["./b9"])
+    subprocess.run(["nvcc", "-o", "b10", "bench10.cu"], check=True)
+    subprocess.run(["./b10"])
     os.chdir("..")
 
 def get_cuda_results():
@@ -93,6 +99,8 @@ def get_cuda_results():
         "B6": [],
         "B7": [],
         "B8": [],
+        "B9": [],
+        "B10": [],
     }
     results = ""
     with open("cudacpp/results/bench_results1.txt", "r") as f:
@@ -110,6 +118,10 @@ def get_cuda_results():
     with open("cudacpp/results/bench_results7.txt", "r") as f:
         results += "\n" + f.read()
     with open("cudacpp/results/bench_results8.txt", "r") as f:
+        results += "\n" + f.read()
+    with open("cudacpp/results/bench_results9.txt", "r") as f:
+        results += "\n" + f.read()
+    with open("cudacpp/results/bench_results10.txt", "r") as f:
         results += "\n" + f.read()
     results = results.split("\n")
     for line in results:
@@ -153,6 +165,8 @@ def get_numba_results():
         "B6": [],
         "B7": [],
         "B8": [],
+        "B9": [],
+        "B10": [],
     }
     results = ""
     with open("numba/results/bench_results.txt", "r") as f:
@@ -425,3 +439,13 @@ if __name__ == "__main__":
         "CUDA": results_cuda["B8"],
         "Numba": results_numba["B8"],
     }, file_name="B8", title="Complex matrix multiplication", xlabel="Number of iterations")
+    plot_benchmarks_baseline(results_cuda["B9"], {
+        "Rust": results_rust["B9"],
+        "CUDA": results_cuda["B9"],
+        "Numba": results_numba["B9"],
+    }, file_name="B9", title="Double precision float matrix multiplication", xlabel="Matrix size")
+    plot_benchmarks_baseline(results_cuda["B10"], {
+        "Rust": results_rust["B10"],
+        "CUDA": results_cuda["B10"],
+        "Numba": results_numba["B10"],
+    }, file_name="B10", title="Single precision float matrix multiplication", xlabel="Matrix size")

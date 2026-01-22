@@ -3,6 +3,7 @@
 mod mandelbrot;
 mod fast_fourier_transform;
 mod complex_matrix_multiplication;
+mod float_matrix_multiplication;
 
 use cuda::dmem::{Buffer, DSend};
 use cuda::{device_sync, gpu};
@@ -197,6 +198,10 @@ fn main() {
     let results7 = complex_matrix_multiplication::bench7();
     println!("Running Bench 8...");
     let results8 = complex_matrix_multiplication::bench8();
+    println!("Running Bench 9...");
+    let results9 = float_matrix_multiplication::bench9();
+    println!("Running Bench 10...");
+    let results10 = float_matrix_multiplication::bench10();
 
     // write the results to a file
     // in a format that can be read by python
@@ -224,6 +229,12 @@ fn main() {
     }
     for result in &results8 {
         res.push_str(&format!("B8|{}|{}|{}\n", result.test, result.size, result.gpu_time));
+    }
+    for result in &results9 {
+        res.push_str(&format!("B9|{}|{}|{}\n", result.test, result.size, result.gpu_time));
+    }
+    for result in &results10 {
+        res.push_str(&format!("B10|{}|{}|{}\n", result.test, result.size, result.gpu_time));
     }
 
     let mut file = File::create("results/bench_results.txt").unwrap();
