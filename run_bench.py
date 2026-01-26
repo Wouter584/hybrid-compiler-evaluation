@@ -8,9 +8,7 @@ import subprocess
 import sys
 import time
 import matplotlib.pyplot as plt
-
-import re
-from matplotlib.ticker import StrMethodFormatter, NullFormatter
+import numpy as np
 
 def run_rust_benchmarks():
     """
@@ -195,7 +193,7 @@ def run_all_benchmarks(iterations:int):
         "rust": [],
         "cuda": [],
         "numba": [],
-    } # Structure: {language: [{bench_name: [(size, average_time)]}]}
+    } # Structure: {language: [{bench_name: [(size, time)]}]}
     start = time.perf_counter()
     for iteration in range(iterations):
         run_rust_benchmarks()
@@ -212,7 +210,7 @@ def run_all_benchmarks(iterations:int):
         "rust": {},
         "cuda": {},
         "numba": {},
-    } # Structure: {language: {bench_name: {size, [gpu_time]}}}
+    } # Structure: {language: {bench_name: {size, [time]}}}
     for language, results in result_dict.items():
         for bench_dict in results:
             for bench_name, bench_results in bench_dict.items():
@@ -231,24 +229,24 @@ def run_all_benchmarks(iterations:int):
 def results_to_file(results, file_name):
     """
     Output results as a file.
-    :param results: Structure: {language: {bench_name: {size, [gpu_time]}}}
+    :param results: Structure: {language: {bench_name: {size, [values]}}}
     :param file_name:
     :return:
     """
     with open(file_name, "w") as f:
         for language, language_results_dict in results.items():
             for bench_name, bench_results_dict in language_results_dict.items():
-                for size, gpu_times in bench_results_dict.items():
+                for size, values in bench_results_dict.items():
                     f.write(f"{language}|{bench_name}|{size}|")
-                    for gpu_time in gpu_times:
-                        f.write(f"{gpu_time},")
+                    for value in values:
+                        f.write(f"{value},")
                     f.write(f"\n")
 
 def file_to_results(file_name):
     """
     Returns results from a file.
     :param file_name:
-    :return: Structure: {language: {bench_name: {size, [gpu_time]}}}
+    :return: Structure: {language: {bench_name: {size, [values]}}}
     """
     results = {}
     with open(file_name, "r") as f:
@@ -274,8 +272,8 @@ def file_to_results(file_name):
         if bench_size not in results[language][bench_name]:
             results[language][bench_name][bench_size] = []
 
-        for time in bench_times:
-            results[language][bench_name][bench_size].append(float(time))
+        for value in bench_times:
+            results[language][bench_name][bench_size].append(float(value))
 
     return results
 
@@ -293,32 +291,30 @@ def results_as_tuples(results):
                     results_as_tuple[language] = {}
                 if bench_name not in results_as_tuple[language]:
                     results_as_tuple[language][bench_name] = []
-                results_as_tuple[language][bench_name].append((bench_size, bench_times[0]))
+                results_as_tuple[language][bench_name].append((bench_size, bench_times[0][0], bench_times[0][1]))
     return results_as_tuple
 
 
-def get_all_averages():
-    average_results = {} # Structure: {language: {bench_name: {size, [gpu_time]}}}
+def get_averages_and_deviations():
+    processed_results = {} # Structure: {language: {bench_name: {size, [value]}}}
     all_results = file_to_results("all_results.txt")
 
     for language, language_results_dict in all_results.items():
         for bench_name, bench_results_dict in language_results_dict.items():
             for bench_size, bench_times in bench_results_dict.items():
-                if language not in average_results:
-                    average_results[language] = {}
-                if bench_name not in average_results[language]:
-                    average_results[language][bench_name] = {}
-                if bench_size not in average_results[language][bench_name]:
-                    average_results[language][bench_name][bench_size] = []
+                if language not in processed_results:
+                    processed_results[language] = {}
+                if bench_name not in processed_results[language]:
+                    processed_results[language][bench_name] = {}
+                if bench_size not in processed_results[language][bench_name]:
+                    processed_results[language][bench_name][bench_size] = []
 
-                average_time = 0.0
-                for time in bench_times:
-                    average_time += time
-                average_time = average_time / len(bench_times)
-                average_results[language][bench_name][bench_size].append(average_time)
+                average_time = float(np.mean(bench_times))
+                standard_deviation = float(np.std(bench_times))
+                processed_results[language][bench_name][bench_size].append((average_time, standard_deviation))
 
-    results_to_file(average_results, "averaged_results")
-    return results_as_tuples(average_results)
+    results_to_file(processed_results, "processed_results.txt")
+    return results_as_tuples(processed_results)
 
 def plot_benchmarks(all_benchmarks, file_name="combined_benchmarks.png", title="Benchmark Results",
                     xlabel="Size", ylabel="Time (ms)"):
@@ -327,18 +323,15 @@ def plot_benchmarks(all_benchmarks, file_name="combined_benchmarks.png", title="
     for lang, benchmark_dict in all_benchmarks.items():
         sizes = []
         times = []
+        y_err = []
 
-        for (size, time) in benchmark_dict:
+        for size, bench_time, *deviation in benchmark_dict:
             sizes.append(size)
-            times.append(time)
+            times.append(bench_time)
+            deviation = deviation[0] if deviation else 0
+            y_err.append(deviation)
 
-
-        plt.plot(sizes, times, marker='o', label=lang)
-
-    # ax = plt.gca()
-    # ax.set_yscale("log")
-    # ax.yaxis.set_major_formatter(StrMethodFormatter('{x:.0f}'))
-    # ax.yaxis.set_minor_formatter(NullFormatter())
+        plt.errorbar(sizes, times, y_err, linestyle='None', marker='o', label=lang, capsize=6)
 
     plt.title(title)
     plt.xlabel(xlabel)
@@ -357,26 +350,21 @@ def plot_benchmarks_baseline(baseline, all_benchmarks, file_name="combined_bench
     plt.figure(figsize=(10, 6))
 
     baseline_times = {}
-    for benchmark in baseline:
-        # benchmark is a tuple of (size, time)
-        size, time = benchmark
-        baseline_times[size] = time
+    for size, bench_time, *deviation in baseline:
+        baseline_times[size] = bench_time
 
     for lang, benchmark_dict in all_benchmarks.items():
         sizes = []
         times = []
+        y_err = []
 
-        for (size, time) in benchmark_dict:
+        for size, bench_time, *deviation in benchmark_dict:
             sizes.append(size)
-            times.append(time / baseline_times[size])
+            times.append(bench_time / baseline_times[size])
+            deviation = deviation[0] if deviation else 0
+            y_err.append(deviation / baseline_times[size])
 
-
-        plt.plot(sizes, times, marker='o', label=lang)
-
-    # ax = plt.gca()
-    # ax.set_yscale("log")
-    # ax.yaxis.set_major_formatter(StrMethodFormatter('{x:.0f}'))
-    # ax.yaxis.set_minor_formatter(NullFormatter())
+        plt.errorbar(sizes, times, y_err, linestyle='None', marker='o', label=lang, capsize=6)
 
     plt.title(title)
     plt.xlabel(xlabel)
@@ -391,36 +379,31 @@ def plot_benchmarks_baseline(baseline, all_benchmarks, file_name="combined_bench
 
 if __name__ == "__main__":
     run_all_benchmarks(10)
-    averages = get_all_averages()
-    results_rust = averages["rust"]
-    results_cuda = averages["cuda"]
-    results_numba = averages["numba"]
-    # plot_benchmarks({
-    #     "Rust": results_rust["B1"],
-    #     "CUDA": results_cuda["B1"],
-    #     "Numba": results_numba["B1"],
-    # }, title="Matrix multiplication", xlabel="Matrix size")
-    plot_benchmarks_baseline(results_cuda["B1"], {
+    processed_bench_results = get_averages_and_deviations()
+    results_rust = processed_bench_results["rust"]
+    results_cuda = processed_bench_results["cuda"]
+    results_numba = processed_bench_results["numba"]
+    plot_benchmarks_baseline(results_rust["B1"], {
         "Rust": results_rust["B1"],
         "CUDA": results_cuda["B1"],
         "Numba": results_numba["B1"],
     }, file_name="B1", title="Matrix multiplication", xlabel="Matrix size")
-    plot_benchmarks_baseline(results_cuda["B2"], {
-        "Rust": results_rust["B2"],
-        "CUDA": results_cuda["B2"],
-        "Numba": results_numba["B2"],
-    }, file_name="B2", title="Matrix multiplication", xlabel="Number of iterations")
-    plot_benchmarks_baseline(results_cuda["B3"], {
+    plot_benchmarks({
+        "Rust": [(size, time/(float(size)), deviation/(float(size))) for (size, time, deviation) in results_rust["B2"]],
+        "CUDA": [(size, time/(float(size)), deviation/(float(size))) for (size, time, deviation) in results_cuda["B2"]],
+        "Numba": [(size, time/(float(size)), deviation/(float(size))) for (size, time, deviation) in results_numba["B2"]],
+    }, file_name="B2", title="Matrix multiplication", xlabel="Number of iterations", ylabel="Time per iteration (ms)")
+    plot_benchmarks_baseline(results_rust["B3"], {
         "Rust": results_rust["B3"],
         "CUDA": results_cuda["B3"],
         "Numba": results_numba["B3"],
     }, file_name="B3", title="Mandelbrot set generation", xlabel="Maximum number of iterations")
-    plot_benchmarks_baseline(results_cuda["B4"], {
-        "Rust": results_rust["B4"],
-        "CUDA": results_cuda["B4"],
-        "Numba": results_numba["B4"],
-    }, file_name="B4", title="Mandelbrot set generation", xlabel="Number of iterations")
-    plot_benchmarks_baseline(results_cuda["B5"], {
+    plot_benchmarks({
+        "Rust": [(size, time/(float(size)), deviation/(float(size))) for (size, time, deviation) in results_rust["B4"]],
+        "CUDA": [(size, time/(float(size)), deviation/(float(size))) for (size, time, deviation) in results_cuda["B4"]],
+        "Numba": [(size, time/(float(size)), deviation/(float(size))) for (size, time, deviation) in results_numba["B4"]],
+    }, file_name="B4", title="Mandelbrot set generation", xlabel="Number of iterations", ylabel="Time per iteration (ms)")
+    plot_benchmarks_baseline(results_rust["B5"], {
         "Rust": results_rust["B5"],
         "CUDA": results_cuda["B5"],
         "Numba": results_numba["B5"],
@@ -429,22 +412,22 @@ if __name__ == "__main__":
         "CUDA": results_cuda["B6"],
         "Numba": results_numba["B6"],
     }, file_name="B6", title="Sum reduction", xlabel="Number of iterations")
-    plot_benchmarks_baseline(results_cuda["B7"], {
+    plot_benchmarks_baseline(results_rust["B7"], {
         "Rust": results_rust["B7"],
         "CUDA": results_cuda["B7"],
         "Numba": results_numba["B7"],
     }, file_name="B7", title="Complex matrix multiplication", xlabel="Matrix size")
-    plot_benchmarks_baseline(results_cuda["B8"], {
-        "Rust": results_rust["B8"],
-        "CUDA": results_cuda["B8"],
-        "Numba": results_numba["B8"],
-    }, file_name="B8", title="Complex matrix multiplication", xlabel="Number of iterations (size 512)")
-    plot_benchmarks_baseline(results_cuda["B9"], {
+    plot_benchmarks({
+        "Rust": [(size, time/(float(size)), deviation/(float(size))) for (size, time, deviation) in results_rust["B8"]],
+        "CUDA": [(size, time/(float(size)), deviation/(float(size))) for (size, time, deviation) in results_cuda["B8"]],
+        "Numba": [(size, time/(float(size)), deviation/(float(size))) for (size, time, deviation) in results_numba["B8"]],
+    }, file_name="B8", title="Complex matrix multiplication", xlabel="Number of iterations", ylabel="Time per iteration (ms)")
+    plot_benchmarks_baseline(results_rust["B9"], {
         "Rust": results_rust["B9"],
         "CUDA": results_cuda["B9"],
         "Numba": results_numba["B9"],
     }, file_name="B9", title="Double precision float matrix multiplication", xlabel="Matrix size")
-    plot_benchmarks_baseline(results_cuda["B10"], {
+    plot_benchmarks_baseline(results_rust["B10"], {
         "Rust": results_rust["B10"],
         "CUDA": results_cuda["B10"],
         "Numba": results_numba["B10"],
