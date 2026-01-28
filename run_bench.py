@@ -320,18 +320,20 @@ def plot_benchmarks(all_benchmarks, file_name="combined_benchmarks.png", title="
                     xlabel="Size", ylabel="Time (ms)"):
     plt.figure(figsize=(10, 6))
 
+    markers = iter(['o', 's', 'd', 'x'])
     for lang, benchmark_dict in all_benchmarks.items():
         sizes = []
         times = []
         y_err = []
 
+        marker = next(markers)
         for size, bench_time, *deviation in benchmark_dict:
             sizes.append(size)
             times.append(bench_time)
             deviation = deviation[0] if deviation else 0
             y_err.append(deviation)
 
-        plt.errorbar(sizes, times, y_err, linestyle='None', marker='o', label=lang, capsize=6)
+        plt.errorbar(sizes, times, y_err, linestyle='None', marker=marker, markersize=8, label=lang, capsize=12)
 
     plt.title(title)
     plt.xlabel(xlabel)
@@ -353,10 +355,12 @@ def plot_benchmarks_baseline(baseline, all_benchmarks, file_name="combined_bench
     for size, bench_time, *deviation in baseline:
         baseline_times[size] = bench_time
 
+    markers = iter(['o', 's', 'd', 'x'])
     for lang, benchmark_dict in all_benchmarks.items():
         sizes = []
         times = []
         y_err = []
+        marker = next(markers)
 
         for size, bench_time, *deviation in benchmark_dict:
             sizes.append(size)
@@ -364,7 +368,7 @@ def plot_benchmarks_baseline(baseline, all_benchmarks, file_name="combined_bench
             deviation = deviation[0] if deviation else 0
             y_err.append(deviation / baseline_times[size])
 
-        plt.errorbar(sizes, times, y_err, linestyle='None', marker='o', label=lang, capsize=6)
+        plt.errorbar(sizes, times, y_err, linestyle='None', marker=marker, markersize=8, label=lang, capsize=12)
 
     plt.title(title)
     plt.xlabel(xlabel)
