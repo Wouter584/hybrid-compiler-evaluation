@@ -49,7 +49,7 @@ __global__ void matrix_mul(C64* result, const C64* a, const C64* b, const int wi
     result[i * height + j] = sum;
 }
 
-const int ns[] = { 16, 64, 256, 512, 1024, 2048, 4096 };
+const int ns[] = { 64, 128, 256, 512, 1024, 2048, 4096 };
 const int ns_count = sizeof(ns) / sizeof(ns[0]);
 
 struct BenchResult {

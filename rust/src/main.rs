@@ -26,13 +26,11 @@ unsafe fn matrix_mul(a: &[i32], b: &[i32], mut c: Buffer<i32>, n: i32) {
     let i = (tid / n) as usize;
     let j = (tid % n) as usize;
     let n_usize = n as usize;
-    if i < n_usize && j < n_usize {
-        let mut sum = 0;
-        for k in 0..n_usize {
-            sum += a[i * n_usize + k] * b[k * n_usize + j];
-        }
-        c.set(i * n_usize + j, sum);
+    let mut sum = 0;
+    for k in 0..n_usize {
+        sum += a[i * n_usize + k] * b[k * n_usize + j];
     }
+    c.set(i * n_usize + j, sum);
 }
 
 pub fn bench1() -> Vec<BenchResults> {
@@ -45,7 +43,7 @@ pub fn bench1() -> Vec<BenchResults> {
     }
 
     let mut results = Vec::new();
-    let sizes = [16, 64, 256, 512, 1024, 2048, 4096, 8192];
+    let sizes = [64, 128, 256, 512, 1024, 2048, 4096, 8192];
 
     for &n in &sizes {
         let total = (n * n) as usize;
@@ -66,7 +64,7 @@ pub fn bench1() -> Vec<BenchResults> {
         let buf_c = Buffer::<i32>::alloc(total).unwrap();
         let mut d_buf_c = buf_c.to_device().unwrap();
 
-        let threads_per_block = 64;
+        let threads_per_block = 256;
         let blocks = (n * n + threads_per_block - 1) / threads_per_block;
 
         let start = Instant::now();
@@ -133,7 +131,7 @@ pub fn bench2() -> Vec<BenchResults> {
     let mut d_b = b.as_slice().to_device().unwrap();
     let mut d_buf_c = Buffer::<i32>::alloc(total).unwrap().to_device().unwrap();
 
-    let threads_per_block = 64;
+    let threads_per_block = 256;
     let blocks = (total + threads_per_block - 1) / threads_per_block;
 
     for &iter in &iters {

@@ -18,17 +18,14 @@ __global__ void matrix_mul(const int* a, const int* b, int* c, int n) {
     int t = blockIdx.x * blockDim.x + threadIdx.x;
     int i = t / n;
     int j = t % n;
-    
-    if (i < n && j < n) {
-        int sum = 0;
-        for (int k = 0; k < n; ++k) {
-            sum += a[i * n + k] * b[k * n + j];
-        }
-        c[i * n + j] = sum;
+    int sum = 0;
+    for (int k = 0; k < n; ++k) {
+        sum += a[i * n + k] * b[k * n + j];
     }
+    c[i * n + j] = sum;
 }
 
-const int ns[] = { 16, 64, 256, 512, 1024, 2048, 4096, 8192 };
+const int ns[] = { 64, 128, 256, 512, 1024, 2048, 4096, 8192 };
 const int ns_count = sizeof(ns) / sizeof(ns[0]);
 
 struct BenchResult {
@@ -77,7 +74,7 @@ int main() {
         CHECK_CUDA(cudaMemcpy(d_a, a.data(), size, cudaMemcpyHostToDevice));
         CHECK_CUDA(cudaMemcpy(d_b, b.data(), size, cudaMemcpyHostToDevice));
 
-        int threads_per_block = 64;
+        int threads_per_block = 256;
         int blocks = (n * n + threads_per_block - 1) / threads_per_block;
 
     

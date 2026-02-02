@@ -39,7 +39,7 @@ pub fn bench9() -> Vec<BenchResults> {
     }
 
     let mut results = Vec::new();
-    let sizes: [usize;7] = [16, 64, 256, 512, 1024, 2048, 4096];
+    let sizes: [usize;7] = [64, 128, 256, 512, 1024, 2048, 4096];
 
     for n in sizes {
         let total = n * n;
@@ -106,7 +106,7 @@ pub fn bench10() -> Vec<BenchResults> {
     }
 
     let mut results = Vec::new();
-    let sizes: [usize;7] = [16, 64, 256, 512, 1024, 2048, 4096];
+    let sizes: [usize;7] = [64, 128, 256, 512, 1024, 2048, 4096];
 
     for n in sizes {
         let total = n * n;

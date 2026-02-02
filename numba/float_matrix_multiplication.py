@@ -7,15 +7,14 @@ def matrix_mul(a, b, c, n):
     tid = cuda.grid(1)
     i = tid // n
     j = tid % n
-    if i < n and j < n:
-        sum = 0
-        for k in range(n):
-            sum += a[i * n + k] * b[k * n + j]
-        c[i * n + j] = sum
+    sum = 0
+    for k in range(n):
+        sum += a[i * n + k] * b[k * n + j]
+    c[i * n + j] = sum
 
 def bench9():
     # 1 is for precompilation
-    sizes = [1, 16, 64, 256, 512, 1024, 2048, 4096]
+    sizes = [1, 64, 128, 256, 512, 1024, 2048, 4096]
     results = []
 
     for n in sizes:
@@ -50,7 +49,7 @@ def bench9():
 
 def bench10():
     # 1 is for precompilation
-    sizes = [1, 16, 64, 256, 512, 1024, 2048, 4096]
+    sizes = [1, 64, 128, 256, 512, 1024, 2048, 4096]
     results = []
 
     for n in sizes:

@@ -19,16 +19,14 @@ __global__ void matrix_mul(const double* a, const double* b, double* c, int n) {
     int i = t / n;
     int j = t % n;
 
-    if (i < n && j < n) {
-        double sum = 0.0;
-        for (int k = 0; k < n; ++k) {
-            sum += a[i * n + k] * b[k * n + j];
-        }
-        c[i * n + j] = sum;
+    double sum = 0.0;
+    for (int k = 0; k < n; ++k) {
+        sum += a[i * n + k] * b[k * n + j];
     }
+    c[i * n + j] = sum;
 }
 
-const int ns[] = { 16, 64, 256, 512, 1024, 2048, 4096 };
+const int ns[] = { 64, 128, 256, 512, 1024, 2048, 4096 };
 const int ns_count = sizeof(ns) / sizeof(ns[0]);
 
 struct BenchResult {

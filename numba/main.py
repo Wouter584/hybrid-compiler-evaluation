@@ -12,15 +12,14 @@ def matrix_mul(a, b, c, n):
     tid = cuda.grid(1)
     i = tid // n
     j = tid % n
-    if i < n and j < n:
-        sum = 0
-        for k in range(n):
-            sum += a[i * n + k] * b[k * n + j]
-        c[i * n + j] = sum
+    sum = 0
+    for k in range(n):
+        sum += a[i * n + k] * b[k * n + j]
+    c[i * n + j] = sum
 
 def bench1():
     # 1 is for precompilation
-    sizes = [1, 16, 64, 256, 512, 1024, 2048, 4096, 8192]
+    sizes = [1, 64, 128, 256, 512, 1024, 2048, 4096, 8192]
     results = []
 
     for n in sizes:
@@ -34,7 +33,7 @@ def bench1():
         d_b = cuda.to_device(b)
         d_c = cuda.device_array_like(c)
 
-        threads_per_block = 64
+        threads_per_block = 256
         blocks = (total + threads_per_block - 1) // threads_per_block
 
         start = time.perf_counter()
@@ -68,7 +67,7 @@ def bench2():
     d_b = cuda.to_device(b)
     d_c = cuda.device_array_like(c)
 
-    threads_per_block = 64
+    threads_per_block = 256
     blocks = (total + threads_per_block - 1) // threads_per_block
 
     for iter in iters:

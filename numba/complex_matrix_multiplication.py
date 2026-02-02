@@ -5,7 +5,7 @@ from fast_fourier_transform import matrix_mul
 
 def bench7():
     # 1 is for precompilation
-    sizes = [1, 16, 64, 256, 512, 1024, 2048, 4096]
+    sizes = [1, 64, 128, 256, 512, 1024, 2048, 4096]
     results = []
 
     for n in sizes:
